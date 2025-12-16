@@ -48,7 +48,7 @@ namespace Board {
     constexpr size_t kTotalShipsCount = kDestroyerMaxCount + kSubmarineMaxCount + kCruiserMaxCount + kBattleshipMaxCount;
 
     // Get the count of ships of a specific type
-    constexpr size_t get_ships_count(ShipType ship_type) {
+    constexpr size_t get_max_ship_count(ShipType ship_type) {
         switch (ship_type) {
             case ShipType::kDestroyer:  return kDestroyerMaxCount;
             case ShipType::kSubmarine:  return kSubmarineMaxCount;

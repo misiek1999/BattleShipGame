@@ -71,8 +71,16 @@ bool Board::is_valid_ship_position(Field move, ShipType ship_type, bool is_verti
         return false; // Invalid ship type
     }
 
+    // Check number of ships of this type
+    if (get_ships_count(ship_type) >= get_max_ship_count(ship_type)) {
+        LOG_V("Maximum number of ships of type {} already placed, max allowed ships count {}",
+                ship_type_to_string(ship_type), get_max_ship_count(ship_type));
+        return false;
+    }
+
     // Check if input position is non negative
     if (move.first < 0 || move.second < 0) {
+        LOG_V("Negative ship coordinates are invalid: ({}, {})", move.first, move.second);
         return false;
     }
 
@@ -82,9 +90,14 @@ bool Board::is_valid_ship_position(Field move, ShipType ship_type, bool is_verti
                                           : Field{move.first + static_cast<int>(i), move.second};
         if (current_field.first >= static_cast<int>(kBoardSizeCol) ||
             current_field.second >= static_cast<int>(kBoardSizeRow)) {
+            LOG_V("Ship of type {} does not fit on the board at position ({}, {}), vertical: {}",
+                  ship_type_to_string(ship_type), current_field.first, current_field.second, is_vertical);
             return false; // Out of bounds
         }
-        if (get_board_field(current_field) != BoardFieldStatus::kEmpty) {
+        const auto board_field = get_board_field(current_field);
+        if (board_field != BoardFieldStatus::kEmpty) {
+            LOG_V("Field ({}, {}) is already occupied {}, cannot place ship of type {}",
+                  current_field.first, current_field.second, static_cast<int>(board_field), ship_type_to_string(ship_type));
             return false; // Field already occupied
         }
 
@@ -101,6 +114,8 @@ bool Board::is_valid_ship_position(Field move, ShipType ship_type, bool is_verti
                     continue;
                 }
                 if (get_board_field(Field{ncol, nrow}) == BoardFieldStatus::kShip) {
+                    LOG_V("Adjacent ship found at ({}, {}) when placing ship of type {} at ({}, {}), invalid position",
+                          ncol, nrow, ship_type_to_string(ship_type), move.first, move.second);
                     return false; // adjacent ship found — invalid position
                 }
             }
@@ -140,6 +155,9 @@ size_t Board::get_board_size_col() const noexcept {
 }
 
 size_t Board::get_ships_count(ShipType ship_type) const noexcept {
+    if (ships_count_.find(ship_type) == ships_count_.end()) {
+        return 0;
+    }
     return ships_count_.at(ship_type);
 }
 
