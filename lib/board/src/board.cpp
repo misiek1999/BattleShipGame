@@ -49,10 +49,16 @@ std::expected<bool, BoardError> Board::make_shot(Field move) noexcept {
             LOG_E("Invalid ship ID at field ({}, {})", move.first, move.second);
             return std::unexpected(BoardError::kInvalidShip);
         }
-        ShipType ship_type = ships_info_.at(ship_id).type;
-        --ships_count_[ship_type];
-        LOG_V("Ship hit at field ({}, {}), ship ID: {}, remaining {} count: {}",
-              move.first, move.second, ship_id, ship_type_to_string(ship_type), ships_count_[ship_type]);
+        ShipType ship_type = ships_info_[ship_id].type;
+        ships_info_[ship_id].hits_count++;
+        const auto remaining_hits = get_ship_size(ship_type) - ships_info_[ship_id].hits_count;
+        LOG_V("Ship hit at field ({}, {}), ship ID: {}, remaining hit count: {}",
+              move.first, move.second, ship_id, remaining_hits);
+        if (remaining_hits == 0) {
+            --ships_count_[ship_type];
+            LOG_I("Ship of type {} sunk! Ship ID: {}, remaining ships count: {}",
+                   ship_type_to_string(ship_type), ship_id, ships_count_[ship_type]);
+        }
         return true;
     } else {
         LOG_V("Shot missed at field ({}, {})", move.first, move.second);

@@ -111,6 +111,7 @@ namespace Board {
         std::pair<size_t, size_t> pos; // row, col
         bool is_vertical = true;
         ShipId ship_id;
+        size_t hits_count = 0;
     };
 
     struct BoardField {
