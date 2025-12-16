@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20.0)
-project(tictactoe VERSION 0.1.0 LANGUAGES C CXX)
+project(battle_ship_game VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 
@@ -13,8 +13,8 @@ file(GLOB_RECURSE SOURCES "source/*.cpp")
 
 add_subdirectory(lib)
 
-add_executable(tictactoe ${SOURCES})
+add_executable(battle_ship_game ${SOURCES})
 
-target_link_libraries(tictactoe PRIVATE LogLib BoardLib)
+target_link_libraries(battle_ship_game PRIVATE LogLib BoardLib)
 
 add_compile_definitions(DISABLE_CONSOLE_CLEAR)
