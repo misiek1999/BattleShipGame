@@ -30,6 +30,16 @@ namespace Board {
         kBattleship = 3,    // 4 cells
     };
 
+    inline constexpr const char* ship_type_to_string(const ShipType ship_type) {
+        switch (ship_type) {
+            case ShipType::kDestroyer:  return "Destroyer";
+            case ShipType::kSubmarine:  return "Submarine";
+            case ShipType::kCruiser:    return "Cruiser";
+            case ShipType::kBattleship: return "Battleship";
+            default: return "Unknown";
+        }
+    }
+
     // Count of ships
     constexpr size_t kDestroyerMaxCount = 4U;
     constexpr size_t kSubmarineMaxCount = 3U;
