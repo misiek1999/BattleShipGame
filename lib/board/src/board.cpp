@@ -111,7 +111,7 @@ bool Board::is_valid_ship_position(Field move, ShipType ship_type, bool is_verti
 
 std::expected<bool, BoardError> Board::place_ship(Field move, ShipType ship_type, bool is_vertical) noexcept {
     if (!is_valid_ship_position(move, ship_type, is_vertical)) {
-        LOG_E("Invalid ship position at field ({}, {}) for ship type {}, vertical: {}", move.first, move.second, static_cast<int>(ship_type), is_vertical);
+        LOG_E("Invalid ship position at field ({}, {}) for ship type {}, vertical: {}", move.first, move.second, ship_type_to_string(ship_type), is_vertical);
         return std::unexpected(BoardError::kInvalidShipPosition);
     }
 
@@ -127,7 +127,7 @@ std::expected<bool, BoardError> Board::place_ship(Field move, ShipType ship_type
         board_[current_field.second][current_field.first].ship_id = new_ship_id;
     }
     LOG_D("Placed ship of type {} at field ({}, {}), vertical: {}, ship ID: {}",
-          static_cast<int>(ship_type), move.first, move.second, is_vertical, new_ship_id);
+          ship_type_to_string(ship_type), move.first, move.second, is_vertical, new_ship_id);
     return true;
 }
 
