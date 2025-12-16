@@ -120,7 +120,9 @@ namespace Board {
 
     // Type of the board 1. ROW, 2. COL
     using BoardType = std::array<std::array<BoardField, kBoardSizeCol>, kBoardSizeRow>;
+    using BoardTypeAscii = std::array<std::array<char, kBoardSizeCol>, kBoardSizeRow>;
 
+    BoardTypeAscii board_to_ascii(const BoardType& board) noexcept;
 
     class Board{
     public:
@@ -195,6 +197,10 @@ namespace Board {
         /// @brief Get the board
         /// @return The board
         BoardType get_board() const noexcept;
+
+        /// @brief Get the board without ships
+        /// @return The board without ships
+        BoardType get_board_without_ships() const noexcept;
 
     private:
         BoardType board_;

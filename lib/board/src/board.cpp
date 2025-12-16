@@ -156,6 +156,19 @@ BoardType Board::get_board() const noexcept {
     return board_;
 }
 
+BoardType Board::get_board_without_ships() const noexcept {
+    BoardType board_copy = board_;
+    for (auto& row : board_copy) {
+        for (auto& field : row) {
+            if (field.field == BoardFieldStatus::kShip) {
+                field.field = BoardFieldStatus::kEmpty;
+                field.ship_id = std::nullopt;
+            }
+        }
+    }
+    return board_copy;
+}
+
 ShipId Board::get_ship_id_at_field(const Field& field) const noexcept {
     const auto& board_field = board_[field.second][field.first];
     if (board_field.ship_id.has_value()) {
@@ -168,4 +181,14 @@ ShipId Board::generate_ship_id() noexcept {
     return ship_id_counter_++;
 }
 
-}   // namespace Board
+BoardTypeAscii board_to_ascii(const BoardType &board) noexcept {
+    BoardTypeAscii ascii_board;
+    for (size_t row = 0; row < kBoardSizeRow; ++row) {
+        for (size_t col = 0; col < kBoardSizeCol; ++col) {
+            ascii_board[row][col] = get_board_field_char(board[row][col].field);
+        }
+    }
+    return ascii_board;
+}
+
+} // namespace Board
