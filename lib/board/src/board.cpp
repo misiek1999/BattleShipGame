@@ -42,7 +42,6 @@ std::expected<bool, BoardError> Board::make_shot(Field move) noexcept {
         return std::unexpected(result);
     }
     const auto field = get_board_field(move);
-
     if (field == BoardFieldStatus::kShip) {
         set_board_field(move, BoardFieldStatus::kShot);
         ShipId ship_id = get_ship_id_at_field(move);
@@ -52,10 +51,11 @@ std::expected<bool, BoardError> Board::make_shot(Field move) noexcept {
         }
         ShipType ship_type = ships_info_.at(ship_id).type;
         --ships_count_[ship_type];
-        LOG_V("Ship hit at field ({}, {}), ship ID: {}, remaining count of type {}: {}",
-              move.first, move.second, ship_id, static_cast<int>(ship_type), ships_count_[ship_type]);
+        LOG_V("Ship hit at field ({}, {}), ship ID: {}, remaining {} count: {}",
+              move.first, move.second, ship_id, ship_type_to_string(ship_type), ships_count_[ship_type]);
         return true;
     } else {
+        LOG_V("Shot missed at field ({}, {})", move.first, move.second);
         set_board_field(move, BoardFieldStatus::kMiss);
         return false;
     }
@@ -63,12 +63,20 @@ std::expected<bool, BoardError> Board::make_shot(Field move) noexcept {
 
 bool Board::is_valid_ship_position(Field move, ShipType ship_type, bool is_vertical) const {
     size_t ship_size = 0;
+    // Try to get ship size, catch invalid argument exception
     try {
         ship_size = get_ship_size(ship_type);
     } catch (const std::invalid_argument& e) {
         LOG_E("Exception catched: {}", e.what());
         return false; // Invalid ship type
     }
+
+    // Check if input position is non negative
+    if (move.first < 0 || move.second < 0) {
+        return false;
+    }
+
+    // Check if ship fits in the board and doesn't overlap with existing ships
     for (size_t i = 0; i < ship_size; ++i) {
         Field current_field = is_vertical ? Field{move.first, move.second + static_cast<int>(i)}
                                           : Field{move.first + static_cast<int>(i), move.second};
@@ -78,6 +86,24 @@ bool Board::is_valid_ship_position(Field move, ShipType ship_type, bool is_verti
         }
         if (get_board_field(current_field) != BoardFieldStatus::kEmpty) {
             return false; // Field already occupied
+        }
+
+        // ensure surrounding cells (including diagonals) are empty so ships don't touch
+        const int col = current_field.first;
+        const int row = current_field.second;
+        for (int dr = -1; dr <= 1; ++dr) {
+            for (int dc = -1; dc <= 1; ++dc) {
+                if (dr == 0 && dc == 0) continue; // skip current
+                int ncol = col + dc;
+                int nrow = row + dr;
+                if (ncol < 0 || nrow < 0 ||
+                    ncol >= static_cast<int>(kBoardSizeCol) || nrow >= static_cast<int>(kBoardSizeRow)) {
+                    continue;
+                }
+                if (get_board_field(Field{ncol, nrow}) == BoardFieldStatus::kShip) {
+                    return false; // adjacent ship found — invalid position
+                }
+            }
         }
     }
     return true;
@@ -93,7 +119,7 @@ std::expected<bool, BoardError> Board::place_ship(Field move, ShipType ship_type
     ships_info_[new_ship_id] = ShipInfo{ship_type, {static_cast<size_t>(move.second), static_cast<size_t>(move.first)}, is_vertical, new_ship_id};
     ++ships_count_[ship_type];
 
-    size_t ship_size = static_cast<size_t>(ship_type);
+    size_t ship_size = get_ship_size(ship_type);
     for (size_t i = 0; i < ship_size; ++i) {
         Field current_field = is_vertical ? Field{move.first, move.second + static_cast<int>(i)}
                                           : Field{move.first + static_cast<int>(i), move.second};
