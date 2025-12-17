@@ -163,8 +163,8 @@ namespace Board {
         /// @param move The move to make
         /// @param ship_type The type of the ship
         /// @param is_vertical True if the ship is vertical, false otherwise
-        /// @return True if the ship was placed successfully, false otherwise. May return error code in fail case
-        std::expected<bool, BoardError> place_ship(Field move, ShipType ship_type, bool is_vertical) noexcept;
+        /// @return Error code, kOk if the ship was placed successfully
+        BoardError place_ship(Field move, ShipType ship_type, bool is_vertical) noexcept;
 
         /// @brief Get the board row size
         /// @return The row size of the board
