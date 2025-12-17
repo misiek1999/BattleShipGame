@@ -1,6 +1,6 @@
 add_subdirectory(board)
 # add_subdirectory(console_manager)
-# add_subdirectory(game_engine)
+add_subdirectory(game_engine)
 # add_subdirectory(game_manager)
 # add_subdirectory(game_types)
 add_subdirectory(log)
