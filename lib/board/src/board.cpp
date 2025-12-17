@@ -175,7 +175,7 @@ size_t Board::get_all_ships_count() const noexcept {
     return total;
 }
 
-std::unordered_map<ShipType, size_t> Board::get_ships_count_map() const noexcept {
+ShipCountMap Board::get_ships_count_map() const noexcept {
     return ships_count_;
 }
 

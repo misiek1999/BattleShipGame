@@ -125,6 +125,7 @@ namespace Board {
 
     BoardTypeAscii board_to_ascii(const BoardType& board) noexcept;
 
+    using ShipCountMap = std::unordered_map<ShipType, size_t>;
     class Board{
     public:
         Board() = default;
@@ -186,7 +187,7 @@ namespace Board {
         /// @brief Get the map of ships remaining count
         /// @return The map of ships remaining count
         /// @note The map contains the ship type as key and the count of remaining ships as value
-        std::unordered_map<ShipType, size_t> get_ships_count_map() const noexcept;
+        ShipCountMap get_ships_count_map() const noexcept;
 
         /// @brief Has if all ships are deployed
         /// @return True if all ships are deployed, false otherwise
