@@ -15,6 +15,6 @@ add_subdirectory(lib)
 
 add_executable(battle_ship_game ${SOURCES})
 
-target_link_libraries(battle_ship_game PRIVATE LogLib BoardLib GameEngineLib)
+target_link_libraries(battle_ship_game PRIVATE LogLib BoardLib GameEngineLib PlayerInterfaceLib PlayerBotLib PlayerManagerLib)
 
 add_compile_definitions(DISABLE_CONSOLE_CLEAR)
