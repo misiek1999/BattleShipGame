@@ -8,6 +8,8 @@
 #include <utility>
 #include <stdexcept>
 #include <optional>
+#include <string>
+#include <functional>
 
 namespace Board {
     // Size of the board
@@ -16,26 +18,29 @@ namespace Board {
 
     // Types of fields in the board
     enum class BoardFieldStatus : uint8_t {
-        kEmpty = 0,  // Empty field
-        kShip = 1,   // Player ship
-        kShot = 2,   // Shot fired
-        kMiss = 3,   // Missed shot
+        Empty = 0,  // Empty field
+        Ship = 1,   // Player ship
+        Shot = 2,   // Shot fired
+        Miss = 3,   // Missed shot
     };
 
     // Types of ships
     enum class ShipType : uint8_t {
-        kDestroyer  = 0,    // 1 cells
-        kSubmarine  = 1,    // 2 cells
-        kCruiser    = 2,    // 3 cells
-        kBattleship = 3,    // 4 cells
+        Destroyer  = 0,    // 1 cells
+        Submarine  = 1,    // 2 cells
+        Cruiser    = 2,    // 3 cells
+        Battleship = 3,    // 4 cells
+        NumberOfShips
     };
+
+    constexpr const auto kNumberOfShips = static_cast<size_t>(ShipType::NumberOfShips);
 
     inline constexpr const char* ship_type_to_string(const ShipType ship_type) {
         switch (ship_type) {
-            case ShipType::kDestroyer:  return "Destroyer";
-            case ShipType::kSubmarine:  return "Submarine";
-            case ShipType::kCruiser:    return "Cruiser";
-            case ShipType::kBattleship: return "Battleship";
+            case ShipType::Destroyer:  return "Destroyer";
+            case ShipType::Submarine:  return "Submarine";
+            case ShipType::Cruiser:    return "Cruiser";
+            case ShipType::Battleship: return "Battleship";
             default: return "Unknown";
         }
     }
@@ -47,13 +52,15 @@ namespace Board {
     constexpr size_t kBattleshipMaxCount= 1U;
     constexpr size_t kTotalShipsCount = kDestroyerMaxCount + kSubmarineMaxCount + kCruiserMaxCount + kBattleshipMaxCount;
 
+    constexpr const std::array kMaxAvailableShipsArray {kDestroyerMaxCount, kSubmarineMaxCount, kCruiserMaxCount, kBattleshipMaxCount};
+
     // Get the count of ships of a specific type
     constexpr size_t get_max_ship_count(ShipType ship_type) {
         switch (ship_type) {
-            case ShipType::kDestroyer:  return kDestroyerMaxCount;
-            case ShipType::kSubmarine:  return kSubmarineMaxCount;
-            case ShipType::kCruiser:    return kCruiserMaxCount;
-            case ShipType::kBattleship: return kBattleshipMaxCount;
+            case ShipType::Destroyer:  return kDestroyerMaxCount;
+            case ShipType::Submarine:  return kSubmarineMaxCount;
+            case ShipType::Cruiser:    return kCruiserMaxCount;
+            case ShipType::Battleship: return kBattleshipMaxCount;
             default: break;
         }
         // Throw an exception if the ship type is not found
@@ -62,10 +69,10 @@ namespace Board {
 
     constexpr size_t get_ship_size(ShipType ship_type) {
         switch (ship_type) {
-            case ShipType::kDestroyer:  return 1U;
-            case ShipType::kSubmarine:  return 2U;
-            case ShipType::kCruiser:    return 3U;
-            case ShipType::kBattleship: return 4U;
+            case ShipType::Destroyer:  return 1U;
+            case ShipType::Submarine:  return 2U;
+            case ShipType::Cruiser:    return 3U;
+            case ShipType::Battleship: return 4U;
             default: break;
         }
         // Throw an exception if the ship type is not found
@@ -75,30 +82,36 @@ namespace Board {
     // Map of ship types to their char characters, this is used for debug printing
     constexpr char get_board_field_char(BoardFieldStatus field) noexcept {
         switch (field) {
-            case BoardFieldStatus::kEmpty:return '_';
-            case BoardFieldStatus::kShip: return 'S';
-            case BoardFieldStatus::kShot: return 'X';
-            case BoardFieldStatus::kMiss: return 'O';
+            case BoardFieldStatus::Empty:return '_';
+            case BoardFieldStatus::Ship: return 'S';
+            case BoardFieldStatus::Shot: return 'X';
+            case BoardFieldStatus::Miss: return 'O';
             default: return '?';
         }
     }
 
-    // Define a move as a pair of integers
-    using Field = std::pair<int, int>;
+    // Define a move as a pair of integers (ROW, COL)
+    using Position = std::pair<int, int>;
 
     // Constant for invalid move
-    constexpr Field kInvalidMove = {-1, -1};
+    constexpr Position InvalidMove = {-1, -1};
 
     // Error codes for the board
     enum class BoardError {
-        kOk = 0,
-        kInvalidMove,
-        kInvalidPlayer,
-        kInvalidShip,
-        kInvalidShipCount,
-        kInvalidShipPosition,
-        kInvalidShipOrientation,
-        kFieldAlreadyOccupied,
+        Ok = 0,
+        InvalidMove,
+        InvalidPlayer,
+        InvalidShip,
+        InvalidShipCount,
+        InvalidShipPosition,
+        InvalidShipOrientation,
+        FieldAlreadyOccupied,
+    };
+
+    enum class ShotResult {
+        Miss = 0,
+        Hit,
+        ShipDestroyed
     };
 
     using ShipId = size_t;
@@ -115,7 +128,7 @@ namespace Board {
     };
 
     struct BoardField {
-        BoardFieldStatus field = BoardFieldStatus::kEmpty;
+        BoardFieldStatus field = BoardFieldStatus::Empty;
         std::optional<ShipId> ship_id = std::nullopt;
     };
 
@@ -123,9 +136,12 @@ namespace Board {
     using BoardType = std::array<std::array<BoardField, kBoardSizeCol>, kBoardSizeRow>;
     using BoardTypeAscii = std::array<std::array<char, kBoardSizeCol>, kBoardSizeRow>;
 
-    BoardTypeAscii board_to_ascii(const BoardType& board) noexcept;
+    using ShipCountMap = std::array<size_t, kNumberOfShips>;
 
-    using ShipCountMap = std::unordered_map<ShipType, size_t>;
+    BoardTypeAscii board_to_ascii_array(const BoardType& board) noexcept;
+    std::string board_to_ascii_string(const BoardType& board) noexcept;
+    std::string ship_count_to_string(const ShipCountMap& ship_count);
+
     class Board{
     public:
         Board() = default;
@@ -142,30 +158,25 @@ namespace Board {
         /// @brief Check if the move is valid
         /// @param move The move to check
         /// @return True if the shot is valid, false otherwise
-        bool is_valid_shot(Field move) const noexcept;
-
-        /// @brief Check if the move is valid
-        /// @param move The move to check
-        /// @return Return error code, kOk if the move is valid
-        BoardError get_shot_result(Field move) const noexcept;
+        bool is_valid_shot(Position move) const noexcept;
 
         /// @brief Make a shot on the board
         /// @param move The move to make
-        /// @return True if the shot was successful, false otherwise. May return error code in fail case
-        std::expected<bool, BoardError> make_shot(Field move) noexcept;
+        /// @return Shot result if the shot was successful, error code otherwise
+        std::expected<ShotResult, BoardError> make_shot(Position move) noexcept;
 
         /// @brief Check if the ship can be placed on the board
         /// @param move The move to make
         /// @param ship_type The type of the ship
         /// @param is_vertical True if the ship is vertical, false otherwise
-        bool is_valid_ship_position(Field move, ShipType ship_type, bool is_vertical) const;
+        bool is_valid_ship_position(Position move, ShipType ship_type, bool is_vertical) const;
 
         /// @brief Place a ship on the board
         /// @param move The move to make
         /// @param ship_type The type of the ship
         /// @param is_vertical True if the ship is vertical, false otherwise
-        /// @return Error code, kOk if the ship was placed successfully
-        BoardError place_ship(Field move, ShipType ship_type, bool is_vertical) noexcept;
+        /// @return Error code, Ok if the ship was placed successfully
+        BoardError place_ship(Position move, ShipType ship_type, bool is_vertical) noexcept;
 
         /// @brief Get the board row size
         /// @return The row size of the board
@@ -206,17 +217,22 @@ namespace Board {
 
     private:
         BoardType board_;
-        std::unordered_map<ShipType, size_t> ships_count_;
+        ShipCountMap ships_count_ {};
         std::unordered_map<ShipId, ShipInfo> ships_info_;
 
         ShipId ship_id_counter_ = 0;
 
-        BoardFieldStatus get_board_field(const Field& field) const noexcept;
+        BoardFieldStatus get_board_field(const Position& field) const noexcept;
 
-        void set_board_field(const Field& field, BoardFieldStatus field_type) noexcept;
+        void set_board_field(const Position& field, BoardFieldStatus field_type) noexcept;
 
-        ShipId get_ship_id_at_field(const Field& field) const noexcept;
+        ShipId get_ship_id_at_field(const Position& field) const noexcept;
 
         ShipId generate_ship_id() noexcept;
+
+        /// @brief Check if the move is valid
+        /// @param move The move to check
+        /// @return Return error code, Ok if the move is valid
+        BoardError get_shot_result(Position move) const noexcept;
     };
 }

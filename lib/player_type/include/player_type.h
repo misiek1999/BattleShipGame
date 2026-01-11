@@ -1,29 +1,47 @@
 #pragma once
 
 #include <cstdint>
+#include <cassert>
+#include <array>
 
-enum class BoardPlayerType : uint8_t {
+enum class PlayerType : uint8_t {
     Player_1 = 0,
-    Player_2 = 1
+    Player_2 = 1,
+    NumberOfPlayers
 };
 
-inline constexpr const char* board_player_type_to_string(const BoardPlayerType player_type) {
+constexpr const std::array<PlayerType, static_cast<size_t>(PlayerType::NumberOfPlayers)> kPlayerArray = {
+    PlayerType::Player_1,
+    PlayerType::Player_2
+};
+
+inline constexpr const char* board_player_type_to_string(const PlayerType player_type) {
     switch (player_type) {
-        case BoardPlayerType::Player_1: return "Player 1";
-        case BoardPlayerType::Player_2: return "Player 2";
+        case PlayerType::Player_1: return "Player 1";
+        case PlayerType::Player_2: return "Player 2";
         default: return "Unknown Player";
     }
 }
 
-inline constexpr BoardPlayerType get_opponent_player(const BoardPlayerType player_type) {
+inline constexpr const char* to_cstring(const PlayerType player_type) noexcept {
+    return board_player_type_to_string(player_type);
+}
+
+inline constexpr PlayerType get_opponent_player(const PlayerType player_type) {
     switch (player_type) {
-        case BoardPlayerType::Player_1: return BoardPlayerType::Player_2;
-        case BoardPlayerType::Player_2: return BoardPlayerType::Player_1;
-        default: throw std::invalid_argument("Invalid player type");
+        case PlayerType::Player_1: return PlayerType::Player_2;
+        case PlayerType::Player_2: return PlayerType::Player_1;
+        default: assert(false && "Invalid PlayerType");
+            return PlayerType::Player_1; // Default return to avoid compiler warning
     }
 }
 
 enum class PlayerError {
-    NONE,
-    INVALID_PLAYER
+    Ok,
+    InvalidPlayer
+};
+
+enum class OponentPlayerType {
+    Human,
+    Bot
 };
