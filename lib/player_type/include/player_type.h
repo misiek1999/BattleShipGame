@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cassert>
 #include <array>
+#include <cstdlib>
 
 enum class PlayerType : uint8_t {
     Player_1 = 0,
