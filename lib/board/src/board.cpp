@@ -139,7 +139,7 @@ BoardError Board::place_ship(Position move, ShipType ship_type, bool is_vertical
     }
 
     ShipId new_ship_id = generate_ship_id();
-    ships_info_[new_ship_id] = ShipInfo{ship_type, {static_cast<size_t>(move.second), static_cast<size_t>(move.first)}, is_vertical, new_ship_id};
+    ships_info_[new_ship_id] = ShipInfo{ship_type, {static_cast<size_t>(move.first), static_cast<size_t>(move.second)}, is_vertical, new_ship_id};
     ++ships_count_[static_cast<size_t>(ship_type)];
 
     size_t ship_size = get_ship_size(ship_type);
@@ -147,7 +147,7 @@ BoardError Board::place_ship(Position move, ShipType ship_type, bool is_vertical
         Position current_field = is_vertical ? Position{move.first, move.second + static_cast<int>(i)}
                                           : Position{move.first + static_cast<int>(i), move.second};
         set_board_field(current_field, BoardFieldStatus::Ship);
-        board_[current_field.second][current_field.first].ship_id = new_ship_id;
+        board_[current_field.first][current_field.second].ship_id = new_ship_id;
     }
     LOG_D("Placed ship of type {} at field ({}, {}), vertical: {}, ship ID: {}",
           ship_type_to_string(ship_type), move.first, move.second, is_vertical, new_ship_id);
@@ -187,11 +187,11 @@ bool Board::has_all_ships_deployed() const noexcept {
 }
 
 BoardFieldStatus Board::get_board_field(const Position& field) const noexcept {
-    return board_[field.second][field.first].field;
+    return board_[field.first][field.second].field;
 }
 
 void Board::set_board_field(const Position& field, BoardFieldStatus field_type) noexcept {
-    board_[field.second][field.first].field = field_type;
+    board_[field.first][field.second].field = field_type;
 }
 
 void Board::reset() {
