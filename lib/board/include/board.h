@@ -94,7 +94,7 @@ namespace Board {
     constexpr char get_board_field_char(BoardFieldStatus field) noexcept {
         switch (field) {
             case BoardFieldStatus::Empty:return ' ';
-            case BoardFieldStatus::Ship: return 'S';
+            case BoardFieldStatus::Ship: return 'P';
             case BoardFieldStatus::Shot: return 'X';
             case BoardFieldStatus::Miss: return 'O';
             default: return '?';
