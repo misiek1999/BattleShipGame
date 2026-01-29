@@ -93,7 +93,7 @@ namespace Board {
     // Map of ship types to their char characters, this is used for debug printing
     constexpr char get_board_field_char(BoardFieldStatus field) noexcept {
         switch (field) {
-            case BoardFieldStatus::Empty:return '_';
+            case BoardFieldStatus::Empty:return ' ';
             case BoardFieldStatus::Ship: return 'S';
             case BoardFieldStatus::Shot: return 'X';
             case BoardFieldStatus::Miss: return 'O';
