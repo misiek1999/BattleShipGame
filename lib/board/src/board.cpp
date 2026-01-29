@@ -94,7 +94,7 @@ bool Board::is_valid_ship_position(Position move, ShipType ship_type, bool is_ve
 
     // Check if ship fits in the board and doesn't overlap with existing ships
     for (size_t i = 0; i < ship_size; ++i) {
-        Position current_field = is_vertical ? Position{move.first, move.second + static_cast<int>(i)}
+        Position current_field = !is_vertical ? Position{move.first, move.second + static_cast<int>(i)}
                                           : Position{move.first + static_cast<int>(i), move.second};
         if (current_field.first >= static_cast<int>(kBoardSizeCol) ||
             current_field.second >= static_cast<int>(kBoardSizeRow)) {
@@ -144,7 +144,7 @@ BoardError Board::place_ship(Position move, ShipType ship_type, bool is_vertical
 
     size_t ship_size = get_ship_size(ship_type);
     for (size_t i = 0; i < ship_size; ++i) {
-        Position current_field = is_vertical ? Position{move.first, move.second + static_cast<int>(i)}
+        Position current_field = !is_vertical ? Position{move.first, move.second + static_cast<int>(i)}
                                           : Position{move.first + static_cast<int>(i), move.second};
         set_board_field(current_field, BoardFieldStatus::Ship);
         board_[current_field.first][current_field.second].ship_id = new_ship_id;
