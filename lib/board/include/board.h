@@ -46,6 +46,16 @@ namespace Board {
         }
     }
 
+    inline constexpr const char* ship_type_to_symbol(const ShipType ship_type) {
+        switch (ship_type) {
+            case ShipType::Destroyer:  return "D";
+            case ShipType::Submarine:  return "S";
+            case ShipType::Cruiser:    return "C";
+            case ShipType::Battleship: return "B";
+            default: return "U";
+        }
+    }
+
     // Count of ships
     constexpr size_t kDestroyerMaxCount = 4U;
     constexpr size_t kSubmarineMaxCount = 3U;
