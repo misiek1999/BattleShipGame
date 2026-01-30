@@ -95,8 +95,8 @@ namespace Board {
         switch (field) {
             case BoardFieldStatus::Empty:return ' ';
             case BoardFieldStatus::Ship: return 'P';
-            case BoardFieldStatus::Shot: return 'X';
-            case BoardFieldStatus::Miss: return 'O';
+            case BoardFieldStatus::Shot: return 'O';
+            case BoardFieldStatus::Miss: return 'X';
             default: return '?';
         }
     }
