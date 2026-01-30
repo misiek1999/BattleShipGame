@@ -245,5 +245,7 @@ namespace Board {
         /// @param move The move to check
         /// @return Return error code, Ok if the move is valid
         BoardError get_shot_result(Position move) const noexcept;
+
+        void blockAreaAroundSunkShip(const ShipId ship_id);
     };
 }

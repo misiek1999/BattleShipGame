@@ -38,6 +38,49 @@ BoardError Board::get_shot_result(Position move) const noexcept {
     return BoardError::Ok;
 }
 
+void Board::blockAreaAroundSunkShip(const ShipId ship_id) {
+    const auto it = ships_info_.find(ship_id);
+    if (it == ships_info_.end()) {
+        LOG_E("blockAreaAroundSunkShip: invalid ship id {}", ship_id);
+        return;
+    }
+
+    const ShipInfo& ship = it->second;
+    const size_t ship_size = get_ship_size(ship.type);
+
+    // Helper to mark a cell as Miss if possible
+    auto mark_miss = [&](int col, int row) {
+        if (col < 0 || row < 0 ||
+            col >= static_cast<int>(kBoardSizeCol) ||
+            row >= static_cast<int>(kBoardSizeRow)) {
+            return;
+        }
+
+        auto& field = board_[col][row];
+        if (field.field == BoardFieldStatus::Empty) {
+            field.field = BoardFieldStatus::Miss;
+        }
+    };
+
+    // Iterate through all ship cells
+    for (size_t i = 0; i < ship_size; ++i) {
+        const int col = ship.is_vertical
+            ? static_cast<int>(ship.pos.first) + static_cast<int>(i)
+            : static_cast<int>(ship.pos.first);
+
+        const int row = ship.is_vertical
+            ? static_cast<int>(ship.pos.second)
+            : static_cast<int>(ship.pos.second) + static_cast<int>(i);
+
+        // Check all surrounding cells (3×3)
+        for (int dc = -1; dc <= 1; ++dc) {
+            for (int dr = -1; dr <= 1; ++dr) {
+                mark_miss(col + dc, row + dr);
+            }
+        }
+    }
+}
+
 std::expected<ShotResult, BoardError> Board::make_shot(Position move) noexcept {
     if (const auto result = get_shot_result(move); result != BoardError::Ok) {
         return std::unexpected(result);
@@ -57,6 +100,7 @@ std::expected<ShotResult, BoardError> Board::make_shot(Position move) noexcept {
               move.first, move.second, ship_id, remaining_hits);
         if (remaining_hits == 0) {
             --ships_count_[static_cast<size_t>(ship_type)];
+            blockAreaAroundSunkShip(ship_id);
             LOG_I("Ship of type {} sunk! Ship ID: {}, remaining ships count: {}",
                    ship_type_to_string(ship_type), ship_id, ships_count_[static_cast<size_t>(ship_type)]);
             return ShotResult::ShipDestroyed;
