@@ -219,7 +219,7 @@ BoardType Board::get_board_without_ships() const noexcept {
 }
 
 ShipId Board::get_ship_id_at_field(const Position& field) const noexcept {
-    const auto& board_field = board_[field.second][field.first];
+    const auto& board_field = board_[field.first][field.second];
     if (board_field.ship_id.has_value()) {
         return board_field.ship_id.value();
     }
