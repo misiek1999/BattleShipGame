@@ -39,6 +39,8 @@ static constexpr const size_t kBoardRowSpace = 2;
 static constexpr const size_t kBoardColSpace = 4;
 
 static constexpr const char kClearLineSeq[] = "\033[2K"; // ANSI escape code to clear the entire line
+static constexpr const char kClearScreenSeq[] = "\033[2J\033[1;1H"; // ANSI escape code to clear the entire screen
+
 
 ConsoleManager::ConsoleManager() {
     LOG_D("ConsoleManager created");
@@ -320,7 +322,7 @@ void ConsoleManager::resetConsoleView() {
 
 void ConsoleManager::clearConsole() {
     // ANSI escape code for clearing screen
-    std::cout << "\033[2J\033[1;1H" << std::flush;
+    std::cout << kClearScreenSeq << std::flush;
 }
 
 void ConsoleManager::moveCursorToPlayerBoardInput(const int row, const int col) {
