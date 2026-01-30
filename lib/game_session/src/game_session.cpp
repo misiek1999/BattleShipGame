@@ -231,11 +231,12 @@ namespace GameSession {
                 }
                 // Notify both players about the shot result
                 sendShotResult(player, arg.position, was_hitted, was_ship_destroyed);
-
+                sendBoardToPlayer(get_opponent_player(player), game_engine_->getBoard(get_opponent_player(player)));
+                sendOponentBoardToPlayer(player, game_engine_->getOponentBoard(player));
                 // In case of sunk ship, update the ships count
                 if (was_ship_destroyed) {
                     sendShipsCountToPlayer(get_opponent_player(player));
-                    sendBoardToPlayer(get_opponent_player(player), game_engine_->getBoard(get_opponent_player(player)));
+                    sendOponentShipsCountToPlayer(player);
                 }
 
                 // Notify about next player's turn
@@ -342,8 +343,8 @@ namespace GameSession {
 
         RequestResult requestShipsCount(const PlayerType player) {
             try {
-                sendShipsCountToPlayer(player);
-                sendOponentShipsCountToPlayer(player);
+                std::ignore = player;
+                sendShipCountsToAllPlayers();
             } catch (const std::exception& e) {
                 LOG_E("Failed to get score: {}", e.what());
                 return RequestResult::OperationFailed;
@@ -384,6 +385,7 @@ namespace GameSession {
                 LOG_W("Unable to start game when game engine is not in game phase");
             }
             // Broadcast to all players events to start shots
+            sendShipCountsToAllPlayers();
             broadcastGameStatus();
             sendPlayerTurnNotify();
         }
@@ -402,6 +404,7 @@ namespace GameSession {
         void sendShipCountsToAllPlayers() {
             for (const auto player : kPlayerArray) {
                 sendShipsCountToPlayer(player);
+                sendOponentShipsCountToPlayer(player);
             }
         }
 
@@ -480,6 +483,7 @@ namespace GameSession {
                 callbacks_.onShipsCountReceived(player, ships_count);
             }
         }
+
         void sendOponentShipsCountToPlayer(const PlayerType player) {
             const auto oponent_player = get_opponent_player(player);
             const auto oponent_ships_count = game_engine_->getPlayerShipsCount(oponent_player);
