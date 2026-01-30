@@ -25,9 +25,10 @@ bool UserInterface::PlayerHost::makeShot(const Board::Position &position, bool& 
         LOG_E("Action interface is not set");
         return false;
     }
-
+    std::unique_lock<std::mutex> lock(make_shot_m_);
+    shot_cond_ = false;
     std::ignore = action_interface_->makeShot(position);
-    if (make_shot_sem_.try_acquire_for(std::chrono::milliseconds(100))) {
+    if (make_shot_cv_.wait_for(lock, std::chrono::milliseconds(100), [this]{ return shot_cond_; })) {
         was_hit = shot_result_is_hit_;
         was_sunk = shot_result_ship_sunk_;
     } else {
@@ -117,6 +118,11 @@ void UserInterface::PlayerHost::onPlayerShotResult(const Board::Position& positi
     }
     shot_result_is_hit_ = is_hit;
     shot_result_ship_sunk_ = is_ship_sunk;
+    {
+        std::unique_lock<std::mutex> lock(make_shot_m_);
+        shot_cond_ = true;
+    }
+    make_shot_cv_.notify_one();
 }
 
 void UserInterface::PlayerHost::onOpponentShotResult(const Board::Position& position, const bool is_hit,

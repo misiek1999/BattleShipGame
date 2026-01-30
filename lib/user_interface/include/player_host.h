@@ -9,6 +9,7 @@
 #include <memory>
 #include <mutex>
 #include <semaphore>
+#include <condition_variable>
 
 namespace UserInterface {
 
@@ -82,7 +83,9 @@ namespace UserInterface {
         bool shot_result_ship_sunk_ {};
         bool shot_result_was_correct_ {};
         bool place_ship_was_correct_ {};
-        std::binary_semaphore make_shot_sem_{0};
+        std::mutex make_shot_m_;
+        std::condition_variable make_shot_cv_;
+        bool shot_cond_ {false};
         std::binary_semaphore place_ship_sem_{0};
         RequestId last_request_id_ {};
 
