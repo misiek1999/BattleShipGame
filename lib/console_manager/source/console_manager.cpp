@@ -307,6 +307,22 @@ void ConsoleManager::updateOponentShipsCount(const Board::ShipCountMap &ships_co
     printOponentShipsCount();
 }
 
+void ConsoleManager::showMakeShotInformation() {
+    printLineAndClear("Use arrow to navigate and space to shot", kGameNotificationLine);
+}
+
+void ConsoleManager::showShipHitInformation(const bool is_hit, const bool is_sunk) {
+    if (is_hit) {
+        if (is_sunk) {
+            printLineAndClear("Ship was hit and sunk!", kGameNotificationLine);
+        } else {
+            printLineAndClear("Ship was hit!", kGameNotificationLine);
+        }
+    } else {
+        printLineAndClear("Shot miss", kGameNotificationLine);
+    }
+}
+
 void ConsoleManager::clearPlayerTurnNotification() {
     clearLine(kGameNotificationLine);
 }

@@ -80,8 +80,6 @@ namespace UserInterface
         if (ui_state_ == UIState::Exiting || ui_game_state_ == UIGameState::PlacingShips) {
             return;
         }
-        std::lock_guard<std::mutex> lock(mutex_);
-        console_manager_->showPlayerTurnNotification();
     }
 
     void UserInterface::onGameStatusUpdated(const GameEngine::GameStatus game_status) {
@@ -89,6 +87,7 @@ namespace UserInterface
             ui_game_state_ = UIGameState::InGame;
             std::lock_guard<std::mutex> lock(mutex_);
             console_manager_->moveCursorToShot(cursor_pos_y_, cursor_pos_x_);
+            console_manager_->showMakeShotInformation();
         }
         if (game_status == GameEngine::GameStatus::PreparingBoards) {
             ui_game_state_ = UIGameState::PlacingShips;
@@ -177,7 +176,10 @@ namespace UserInterface
                 bool was_hit = false;
                 bool was_sunk = false;
                 bool success = host_player_->makeShot({cursor_pos_y_, cursor_pos_x_}, was_hit, was_sunk);
-                if (!success) {
+                if (success) {
+                    std::lock_guard<std::mutex> lock(mutex_);
+                    console_manager_->showShipHitInformation(was_hit, was_sunk);
+                } else {
                     LOG_W("Failed to place ship at position ({}, {})", cursor_pos_y_, cursor_pos_x_);
                 }
             }

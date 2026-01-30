@@ -35,6 +35,8 @@ public:
     void updateGameStatus(GameEngine::GameStatus game_status);
     void updateShipsCount(const Board::ShipCountMap& ships_count);
     void updateOponentShipsCount(const Board::ShipCountMap& ships_count);
+    void showMakeShotInformation();
+    void showShipHitInformation(const bool is_hit, const bool is_sunk);
 
     void clearPlayerTurnNotification();
 
