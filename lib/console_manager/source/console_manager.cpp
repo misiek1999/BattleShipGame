@@ -131,7 +131,7 @@ void ConsoleManager::printBoards(const Board::BoardType& player_board, const Boa
     const std::size_t rows = player_board.size();
 
     // Titles
-    std::string title = "              PLAYER BOARD"
+    std::string title = "               YOUR BOARD"
                       + std::string(sizeof(kTopBorder) - 12, ' ')
                       + "OPONENT BOARD";
     printLineAndClear(title, kMainGameTitleLine);
