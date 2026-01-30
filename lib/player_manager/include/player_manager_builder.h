@@ -5,21 +5,20 @@
 #include "player_type.h"
 #include "player_interface.h"
 #include "player_manager.h"
+#include "player_host.h"
 
 namespace PlayerManager {
 
     class PlayerManager::Builder {
     public:
-        explicit Builder(std::shared_ptr<GameSession::GameSessionApi> game_session);
-        Builder& addHost(std::shared_ptr<Player::IPlayer> host);
-
-        Builder& addGuest(std::shared_ptr<Player::IPlayer> guest, const OponentPlayerType type);
+        explicit Builder(std::shared_ptr<GameSession::GameSessionApi>& game_session);
+        Builder& addHost(std::shared_ptr<UserInterface::PlayerHost> host);
 
         Builder& createGuestType(const OponentPlayerType type);
 
         Builder& addBotType(const BotType type);
 
-        PlayerManager build();
+        std::unique_ptr<PlayerManager> build();
     private:
         std::shared_ptr<GameSession::GameSessionApi> game_session_;
         std::optional<std::shared_ptr<Player::IPlayer>> guest_;

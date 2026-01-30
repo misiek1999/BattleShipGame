@@ -2,18 +2,20 @@
 #include "bot_factory.h"
 #include "player_bot.h"
 
-PlayerManager::PlayerManager::Builder::Builder(std::shared_ptr<GameSession::GameSessionApi> game_session)
+PlayerManager::PlayerManager::Builder::Builder(std::shared_ptr<GameSession::GameSessionApi>& game_session)
     : game_session_(game_session) {
 }
 
-PlayerManager::PlayerManager::Builder& PlayerManager::PlayerManager::Builder::addHost(std::shared_ptr<Player::IPlayer> host) {
-    host_ = std::move(host);
-    return *this;
-}
-
-PlayerManager::PlayerManager::Builder& PlayerManager::PlayerManager::Builder::addGuest(std::shared_ptr<Player::IPlayer> guest, const OponentPlayerType type) {
-    guest_ = std::move(guest);
-    guest_type_ = type;
+PlayerManager::PlayerManager::Builder& PlayerManager::PlayerManager::Builder::addHost(std::shared_ptr<UserInterface::PlayerHost> host) {
+    if (host == nullptr) {
+        throw std::runtime_error("Host argument is null");
+    }
+    if (host_.has_value()) {
+        throw std::runtime_error("Host player already set");
+    }
+    std::shared_ptr<GameSession::IGamePlayerAction> player_action = std::make_shared<GameSession::GamePlayerAction>(game_session_, PlayerType::Player_1);
+    host->setActionHandler(player_action);
+    host_ = std::static_pointer_cast<Player::IPlayer>(host);
     return *this;
 }
 
@@ -32,7 +34,7 @@ PlayerManager::PlayerManager::Builder &PlayerManager::PlayerManager::Builder::ad
     return *this;
 }
 
-PlayerManager::PlayerManager PlayerManager::PlayerManager::Builder::build() {
+std::unique_ptr<PlayerManager::PlayerManager> PlayerManager::PlayerManager::Builder::build() {
     if (!guest_type_.has_value()) {
         LOG_I("Guest not specified. Use bot");
         const auto type = OponentPlayerType::Bot;
@@ -48,7 +50,7 @@ PlayerManager::PlayerManager PlayerManager::PlayerManager::Builder::build() {
         host_ = createHostPlayer();
     }
 
-    return PlayerManager{game_session_, host_.value(), guest_.value(), guest_type_.value()};
+    return std::make_unique<PlayerManager>(game_session_, host_.value(), guest_.value(), guest_type_.value());
 }
 
 // we will use a random bot as host player when host player is not specified

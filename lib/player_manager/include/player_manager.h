@@ -29,16 +29,16 @@ namespace PlayerManager {
 
         OponentPlayerType getGuestPlayerType() override;
 
+        PlayerManager(std::shared_ptr<GameSession::GameSessionApi> game_session,
+                      std::shared_ptr<Player::IPlayer> host,
+                      std::shared_ptr<Player::IPlayer> guest,
+                      OponentPlayerType guest_type);
+
     private:
         std::shared_ptr<GameSession::GameSessionApi> game_session_;
         std::shared_ptr<Player::IPlayer> host_;
         std::shared_ptr<Player::IPlayer> guest_;
         OponentPlayerType guest_type_;
-
-        PlayerManager(std::shared_ptr<GameSession::GameSessionApi> game_session,
-                      std::shared_ptr<Player::IPlayer> host,
-                      std::shared_ptr<Player::IPlayer> guest,
-                      OponentPlayerType guest_type);
     };
 
 

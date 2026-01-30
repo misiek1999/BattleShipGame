@@ -41,8 +41,8 @@ namespace GameSession {
                 .onBoardReceived = [this] (const PlayerType player, const Board::BoardType& board) {
                     this->sendBoardToPlayer(player, board);
                 },
-                .onOponentBoardReceived = [this] (const PlayerType oponent_player, const Board::BoardType& board) {
-                    this->sendBoardToOponent(oponent_player, board);
+                .onOponentBoardReceived = [this] (const PlayerType player, const Board::BoardType& oponent_board) {
+                    this->sendOponentBoardTpPlayer(player, oponent_board);
                 },
                 .onShipsCountReceived = [this] (const PlayerType player, const Board::ShipCountMap& ships_count) {
                     this->sendShipsCountToPlayer(player, ships_count);
@@ -369,15 +369,15 @@ namespace GameSession {
             }
         }
 
-        void sendBoardToOponent(const PlayerType oponent_player_type, const Board::BoardType& board) {
+        void sendOponentBoardTpPlayer(const PlayerType player, const Board::BoardType& oponent_board) {
             std::lock_guard<std::mutex> lock(callback_mutex_);
 
-            auto it = players_callbacks_.find(oponent_player_type);
+            auto it = players_callbacks_.find(player);
             if (it != players_callbacks_.end()) {
-                it->second->onBoardReceived(board);
-                LOG_D("Sent opponent board to player ID: {}", board_player_type_to_string(oponent_player_type));
+                it->second->onOponentBoardReceived(oponent_board);
+                LOG_D("Sent opponent board to player ID: {}", board_player_type_to_string(player));
             } else {
-                LOG_W("Attempted to send opponent board to non-existing player ID: {}", board_player_type_to_string(oponent_player_type));
+                LOG_W("Attempted to send opponent board to non-existing player ID: {}", board_player_type_to_string(player));
             }
         }
 
