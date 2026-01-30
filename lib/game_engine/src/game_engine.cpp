@@ -173,8 +173,10 @@ public:
             LOG_I("{} has won the game!", board_player_type_to_string(player));
             round_result_ = (player == PlayerType::Player_1) ? RoundResult::Player1Won : RoundResult::Player2Won;
         } else {
-            current_turn_player_ = opponent;
-            LOG_D("Turn changed to {}", board_player_type_to_string(current_turn_player_));
+            if (!was_hitted) {
+                current_turn_player_ = opponent;
+                LOG_D("Turn changed to {}", board_player_type_to_string(current_turn_player_));
+            }
         }
 
         return GameEngineError::Ok;
