@@ -14,4 +14,4 @@
 #define LOG_F(...) SPDLOG_LOGGER_CRITICAL(spdlog::default_logger_raw(), __VA_ARGS__)
 
 // Initialize logger
-void init_logger();
+void init_logger(const bool dump_to_file);

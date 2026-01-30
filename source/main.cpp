@@ -4,9 +4,9 @@
 #include "log.h"
 #include "game_manager.h"
 
-int main(int, char**){
+int main(int , char**){
     // Initialize logger
-    init_logger();
+    init_logger(true);
     try {
         GameManager::GameManager game_manager;
 
