@@ -164,7 +164,7 @@ namespace Board {
 
         /// @param player The player to check
         /// @return True if all ships are sunk, false otherwise
-        bool is_winner() const noexcept;
+        bool all_ships_destroyed() const noexcept;
 
         /// @brief Check if the move is valid
         /// @param move The move to check

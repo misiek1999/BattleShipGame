@@ -15,11 +15,11 @@ bool Board::is_full() const noexcept {
     });
 }
 
-bool Board::is_winner() const noexcept {
-    const auto is_winner = std::ranges::all_of(ships_count_, [](const auto& ships_count) {
+bool Board::all_ships_destroyed() const noexcept {
+    const auto all_ships_destroyed = std::ranges::all_of(ships_count_, [](const auto& ships_count) {
         return ships_count == 0;
     });
-    return is_winner;
+    return all_ships_destroyed;
 }
 
 inline bool Board::is_valid_shot(Position move) const noexcept {

@@ -166,7 +166,7 @@ public:
             }
         }
 
-        const auto is_winner = opponent_board.is_winner();
+        const auto is_winner = opponent_board.all_ships_destroyed();
         if (is_winner) {
             boards_.at(player).score += 1;
             game_status_ = GameStatus::RoundFinished;
