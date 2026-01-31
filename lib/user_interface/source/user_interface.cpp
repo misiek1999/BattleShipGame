@@ -1,17 +1,17 @@
 #include "user_interface.h"
 #include "log.h"
+#include "console_manager_dispatcher.h"
 
 namespace UserInterface
 {
 
     UserInterface::UserInterface(std::binary_semaphore& game_end_semaphore)
         : game_end_semaphore_(game_end_semaphore) {
-        console_manager_ = std::make_unique<ConsoleManager>();
+        console_manager_ = std::make_unique<ConsoleManagerDispatcher>();
         LOG_D("UserInterface created");
     }
 
     void UserInterface::startInterface() {
-        std::lock_guard<std::mutex> lock(mutex_);
         console_manager_->setUserInterfaceCallback(shared_from_this());
         console_manager_->startConsole();
         console_manager_->resetConsoleView();
@@ -19,7 +19,6 @@ namespace UserInterface
     }
 
     bool UserInterface::setHostPlayerInterface(std::shared_ptr<IHostAction> host_player) {
-        std::lock_guard<std::mutex> lock(mutex_);
         if (host_player_ != nullptr) {
             LOG_W("Host player interface was already set!");
             return false;
@@ -33,47 +32,39 @@ namespace UserInterface
     }
 
     void UserInterface::onOponentShotResult(const Board::Position &position, const bool is_hit, const bool is_ship_sunk) {
-        std::lock_guard<std::mutex> lock(mutex_);
         (void) position;
         (void) is_hit;
         (void) is_ship_sunk;
     }
 
     void UserInterface::onGameFinished() {
-        std::lock_guard<std::mutex> lock(mutex_);
         LOG_I("Game finished, releasing semaphore.");
         game_end_semaphore_.release();
     }
 
     void UserInterface::onRoundEnded(const GameEngine::RoundResult round_result) {
-        std::lock_guard<std::mutex> lock(mutex_);
         console_manager_->updateRoundEndMessage({}, round_result, round_);
         console_manager_->showRoundEndInformation();
     }
 
     void UserInterface::onScoreUpdated(const int player_score, const int opponent_score) {
-        std::lock_guard<std::mutex> lock(mutex_);
         console_manager_->updateGameStats(player_score, opponent_score, round_);
     }
 
     void UserInterface::onBoardReceived(const Board::BoardType board) {
-        std::lock_guard<std::mutex> lock(mutex_);
         console_manager_->updateBoardPlayer(board);
     }
 
     void UserInterface::onOponentBoardReceived(const Board::BoardType board) {
-        std::lock_guard<std::mutex> lock(mutex_);
         console_manager_->updateBoardOponent(board);
     }
 
     void UserInterface::onShipsCountReceived(const Board::ShipCountMap ships_count) {
         ships_count_ = ships_count;
-        std::lock_guard<std::mutex> lock(mutex_);
         console_manager_->updateShipsCount(ships_count);
     }
 
     void UserInterface::onOponentShipsCountReceived(const Board::ShipCountMap ships_count) {
-        std::lock_guard<std::mutex> lock(mutex_);
         console_manager_->updateOponentShipsCount(ships_count);
     }
 
@@ -90,16 +81,13 @@ namespace UserInterface
                     ++round_;
                 }
                 ui_game_state_ = UIGameState::PlacingShips;
-                std::unique_lock<std::mutex> lock(mutex_);
                 console_manager_->moveCursorToPlayerBoardInput(cursor_pos_y_, cursor_pos_x_);
                 console_manager_->printShipPlacementInstructions();
                 console_manager_->updateRoundCounter(round_);
-                lock.unlock();
                 updateCursorPosition();
             } break;
             case GameEngine::GameStatus::RoundInProgress: {
                 ui_game_state_ = UIGameState::InGame;
-                std::lock_guard<std::mutex> lock(mutex_);
                 console_manager_->moveCursorToShot(cursor_pos_y_, cursor_pos_x_);
                 console_manager_->showMakeShotInformation();
             } break;
@@ -109,7 +97,6 @@ namespace UserInterface
             default:
                 LOG_E("Unknown game status: {}", static_cast<int>(game_status));
         }
-        std::lock_guard<std::mutex> lock(mutex_);
         console_manager_->updateGameStatus(game_status);
     }
 
@@ -139,7 +126,6 @@ namespace UserInterface
         LOG_D("Move Left action received");
         if (ui_state_ == UIState::Exiting) {
             exit_confirmation_selected_ = true;
-            std::lock_guard<std::mutex> lock(mutex_);
             console_manager_->showExitConfirmation(exit_confirmation_selected_);
             return;
         }
@@ -150,7 +136,6 @@ namespace UserInterface
         LOG_D("Move Right action received");
         if (ui_state_ == UIState::Exiting) {
             exit_confirmation_selected_ = false;
-            std::lock_guard<std::mutex> lock(mutex_);
             console_manager_->showExitConfirmation(exit_confirmation_selected_);
             return;
         }
@@ -172,9 +157,7 @@ namespace UserInterface
                 Board::ShipType ship_type = static_cast<Board::ShipType>(current_ship_to_place_index_);
                 bool placed = host_player_->placeShip(ship_type, {cursor_pos_y_, cursor_pos_x_}, placing_ship_horizontal_);
                 if (placed) {
-                    std::unique_lock<std::mutex> lock(mutex_);
                     console_manager_->clearRenderedShipPlacement();
-                    lock.unlock();
                     if (!checkIsSelectedShipPossibleToPlace()) {
                         nextShipToPlace();
                     }
@@ -188,7 +171,6 @@ namespace UserInterface
                 bool was_sunk = false;
                 bool success = host_player_->makeShot({cursor_pos_y_, cursor_pos_x_}, was_hit, was_sunk);
                 if (success) {
-                    std::lock_guard<std::mutex> lock(mutex_);
                     console_manager_->showShipHitInformation(was_hit, was_sunk);
                 } else {
                     LOG_W("Failed to place ship at position ({}, {})", cursor_pos_y_, cursor_pos_x_);
@@ -262,20 +244,17 @@ namespace UserInterface
     void UserInterface::updateCursorPosition() {
         adjustCursorAfterShipChange();
         if (ui_game_state_ == UIGameState::PlacingShips) {
-            std::lock_guard<std::mutex> lock(mutex_);
             console_manager_->moveCursorToPlayerBoardInput(cursor_pos_y_, cursor_pos_x_);
             console_manager_->clearRenderedShipPlacement();
             console_manager_->renderShipPlacement(static_cast<Board::ShipType>(current_ship_to_place_index_),
                                                !placing_ship_horizontal_);
         } else if (ui_game_state_ == UIGameState::InGame) {
-            std::lock_guard<std::mutex> lock(mutex_);
             console_manager_->moveCursorToShot(cursor_pos_y_, cursor_pos_x_);
         }
     }
 
     void UserInterface::showExitConfirmation()
     {
-        std::lock_guard<std::mutex> lock(mutex_);
         console_manager_->showExitConfirmation(exit_confirmation_selected_);
         ui_state_ = UIState::Exiting;
     }
@@ -288,7 +267,6 @@ namespace UserInterface
     void UserInterface::cancelExit() {
         LOG_I("User canceled exit.");
         ui_state_ = UIState::Game;
-        std::lock_guard<std::mutex> lock(mutex_);
         console_manager_->clearExitConfirmation();
     }
 

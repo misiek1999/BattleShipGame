@@ -68,8 +68,7 @@ namespace UserInterface {
     private:
         std::binary_semaphore& game_end_semaphore_;
         std::shared_ptr<IHostAction> host_player_;
-        std::unique_ptr<ConsoleManager> console_manager_;
-        std::mutex mutex_;
+        std::unique_ptr<IConsoleManager> console_manager_;
 
         // TODO: add state machine to handle different UI states
         UIState ui_state_ = UIState::Game;

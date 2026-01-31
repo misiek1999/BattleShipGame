@@ -3,6 +3,7 @@
 #include "board.h"
 #include "user_interface_callback.h"
 #include "game_engine.h"
+#include "console_manager_interface.h"
 
 #include <memory>
 #include <thread>
@@ -11,45 +12,53 @@
 #include <iomanip>
 #include <chrono>
 
-class ConsoleManager {
+class ConsoleManager : public IConsoleManager {
 public:
-    explicit ConsoleManager();
-    ~ConsoleManager();
+    ConsoleManager();
+    ~ConsoleManager() override;
 
-    void setUserInterfaceCallback(std::shared_ptr<UserInterface::IUserInterfaceCallback> ui_interface);
+    void setUserInterfaceCallback(
+        std::shared_ptr<UserInterface::IUserInterfaceCallback> ui_interface) override;
 
-    void startConsole();
-    void stopConsole();
+    void startConsole() override;
+    void stopConsole() override;
 
-    void showExitConfirmation(const bool confirm_was_selected);
-    void clearExitConfirmation();
+    void showExitConfirmation(bool confirm_was_selected) override;
+    void clearExitConfirmation() override;
 
-    void updateBoardPlayer(const Board::BoardType& board);
-    void updateBoardOponent(const Board::BoardType& board);
-    void updateGameStats(const int host_score, const int guest_score, const size_t round);
-    void updateRoundCounter(const size_t round);
-    void updateRoundEndMessage(const Board::BoardType& board, GameEngine::RoundResult result, size_t round);
-    void showRoundEndMessage();
-    void showPlayerTurnNotification();
-    void printShipPlacementInstructions();
-    void showMessage(const std::string& message);
-    void updateGameStatus(GameEngine::GameStatus game_status);
-    void updateShipsCount(const Board::ShipCountMap& ships_count);
-    void updateOponentShipsCount(const Board::ShipCountMap& ships_count);
-    void showMakeShotInformation();
-    void showShipHitInformation(const bool is_hit, const bool is_sunk);
-    void showRoundEndInformation();
+    void updateBoardPlayer(const Board::BoardType& board) override;
+    void updateBoardOponent(const Board::BoardType& board) override;
 
-    void clearPlayerTurnNotification();
+    void updateGameStats(int host_score, int guest_score, size_t round) override;
+    void updateRoundCounter(size_t round) override;
 
-    void resetConsoleView();
-    void clearConsole();
+    void updateRoundEndMessage(const Board::BoardType& board,
+                               GameEngine::RoundResult result,
+                               size_t round) override;
 
-    void moveCursorToPlayerBoardInput(const int row, const int col);
-    void moveCursorToShot(const int row, const int col);
+    void showRoundEndMessage() override;
+    void showRoundEndInformation() override;
+    void showPlayerTurnNotification() override;
 
-    void renderShipPlacement(const Board::ShipType ship_type, const bool is_vertical);
-    void clearRenderedShipPlacement();
+    void printShipPlacementInstructions() override;
+    void showMessage(const std::string& message) override;
+
+    void updateGameStatus(GameEngine::GameStatus game_status) override;
+    void updateShipsCount(const Board::ShipCountMap& ships_count) override;
+    void updateOponentShipsCount(const Board::ShipCountMap& ships_count) override;
+
+    void showMakeShotInformation() override;
+    void showShipHitInformation(bool is_hit, bool is_sunk) override;
+
+    void clearPlayerTurnNotification() override;
+    void resetConsoleView() override;
+    void clearConsole() override;
+
+    void moveCursorToPlayerBoardInput(int row, int col) override;
+    void moveCursorToShot(int row, int col) override;
+
+    void renderShipPlacement(Board::ShipType ship_type, bool is_vertical) override;
+    void clearRenderedShipPlacement() override;
 
 private:
     void consoleInputThread(std::stop_token stoken);
