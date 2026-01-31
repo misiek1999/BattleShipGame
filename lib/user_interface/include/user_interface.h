@@ -82,10 +82,9 @@ namespace UserInterface {
         int cursor_pos_y_ = 0;
 
         Board::ShipCountMap ships_count_{};
-        bool placing_ship_horizontal_ = true;
-        size_t current_ship_to_place_index_ = 0;
-
-        std::size_t round_ {0};
+        bool placing_ship_horizontal_ {true};
+        size_t current_ship_to_place_index_ {0};
+        std::size_t round_ {1};
 
         inline void moveCursorUp();
         inline void moveCursorDown();
