@@ -84,6 +84,8 @@ namespace UserInterface {
         bool placing_ship_horizontal_ = true;
         size_t current_ship_to_place_index_ = 0;
 
+        std::size_t round_ {0};
+
         inline void moveCursorUp();
         inline void moveCursorDown();
         inline void moveCursorLeft();

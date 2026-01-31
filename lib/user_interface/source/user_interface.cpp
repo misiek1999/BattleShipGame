@@ -47,12 +47,13 @@ namespace UserInterface
 
     void UserInterface::onRoundEnded(const GameEngine::RoundResult round_result) {
         std::lock_guard<std::mutex> lock(mutex_);
-        console_manager_->updateGameEndMessage({}, round_result, -1);
+        console_manager_->updateGameEndMessage({}, round_result, round_);
+        ++round_;
     }
 
     void UserInterface::onScoreUpdated(const int player_score, const int opponent_score) {
         std::lock_guard<std::mutex> lock(mutex_);
-        console_manager_->updateGameStats(player_score, opponent_score, -1);
+        console_manager_->updateGameStats(player_score, opponent_score, round_);
     }
 
     void UserInterface::onBoardReceived(const Board::BoardType board) {
