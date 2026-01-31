@@ -21,5 +21,6 @@ int main(int argc, char* argv[]){
         LOG_E("Exception caught in main: {}", e.what());
         return EXIT_FAILURE;
     }
+    LOG_I("Main function exit. Close game.");
     return 0;
 }
