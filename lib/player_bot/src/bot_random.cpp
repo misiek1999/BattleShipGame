@@ -23,7 +23,10 @@ RequestId BotRandom::placeShip(const Board::ShipType ship_type) {
 }
 
 RequestId BotRandom::makeShot() {
-    const auto pos = generateRandomPos();
+    Board::Position pos = {0, 0};
+    do {
+        pos = generateRandomPos();
+    } while (!Board::Board::is_valid_shot(oponent_board_, pos));
     return action_interface_->makeShot(pos);
 }
 

@@ -76,6 +76,7 @@ namespace UserInterface {
         std::shared_ptr<UserInterface> ui_;
         PlayerType player_type_{PlayerType::Player_1};
         Board::BoardType board_;
+        Board::BoardType oponent_board_;
         GameEngine::GameStatus current_game_status_ = GameEngine::GameStatus::NotStarted;
         Board::ShipCountMap ships_count_ = {};
         Board::ShipCountMap oponent_ships_count_ = {};

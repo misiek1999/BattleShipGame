@@ -113,6 +113,9 @@ void PlayerBotBase::onBoardReceived(const Board::BoardType board) {
 }
 
 void PlayerBotBase::onOponentBoardReceived(const Board::BoardType oponent_board) {
+    std::unique_lock lock(mutex_);
+    oponent_board_ = oponent_board;
+    lock.unlock();
     LOG_D("PlayerBotBase received opponent's game board.");
     const auto ascii_board = board_to_ascii_string(oponent_board);
     LOG_D("Board ASCII representation:\n{}", ascii_board);

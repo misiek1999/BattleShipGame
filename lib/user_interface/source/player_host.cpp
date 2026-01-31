@@ -25,6 +25,10 @@ bool UserInterface::PlayerHost::makeShot(const Board::Position &position, bool& 
         LOG_E("Action interface is not set");
         return false;
     }
+    if (!Board::Board::is_valid_shot(oponent_board_, position)) {
+        LOG_D("This field is not available on oponent board");
+        return false;
+    }
     std::unique_lock<std::mutex> lock(make_shot_m_);
     shot_cond_ = false;
     std::ignore = action_interface_->makeShot(position);
@@ -153,6 +157,7 @@ void UserInterface::PlayerHost::onBoardReceived(const Board::BoardType board) {
 }
 
 void UserInterface::PlayerHost::onOponentBoardReceived(const Board::BoardType oponent_board) {
+    oponent_board_ = oponent_board;
     ui_->onOponentBoardReceived(oponent_board);
 }
 

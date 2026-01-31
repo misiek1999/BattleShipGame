@@ -167,9 +167,10 @@ namespace Board {
         bool all_ships_destroyed() const noexcept;
 
         /// @brief Check if the move is valid
+        /// @param board Board to check
         /// @param move The move to check
         /// @return True if the shot is valid, false otherwise
-        bool is_valid_shot(Position move) const noexcept;
+        static bool is_valid_shot(const BoardType& board, Position move) noexcept;
 
         /// @brief Make a shot on the board
         /// @param move The move to make
@@ -245,6 +246,9 @@ namespace Board {
         /// @param move The move to check
         /// @return Return error code, Ok if the move is valid
         BoardError get_shot_result(Position move) const noexcept;
+
+        static BoardError get_shot_result(const BoardType& board, Position move) noexcept;
+        static BoardFieldStatus get_board_field(const BoardType& board, const Position& field) noexcept;
 
         void blockAreaAroundSunkShip(const ShipId ship_id);
     };

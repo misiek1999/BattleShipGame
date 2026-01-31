@@ -66,6 +66,7 @@ protected:
     std::shared_ptr<GameSession::IGamePlayerAction> action_interface_;
     PlayerType player_type_;
     Board::BoardType board_ = {};
+    Board::BoardType oponent_board_ = {};
     GameEngine::GameStatus current_game_status_ = GameEngine::GameStatus::NotStarted;
     Board::ShipCountMap bot_ships_count_ = {};
     Board::ShipCountMap oponent_ships_count_ = {};

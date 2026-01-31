@@ -22,8 +22,8 @@ bool Board::all_ships_destroyed() const noexcept {
     return all_ships_destroyed;
 }
 
-inline bool Board::is_valid_shot(Position move) const noexcept {
-    return get_shot_result(move) == BoardError::Ok;
+bool Board::is_valid_shot(const BoardType& board, Position move) noexcept {
+    return get_shot_result(board, move) == BoardError::Ok;
 }
 
 BoardError Board::get_shot_result(Position move) const noexcept {
@@ -38,7 +38,24 @@ BoardError Board::get_shot_result(Position move) const noexcept {
     return BoardError::Ok;
 }
 
-void Board::blockAreaAroundSunkShip(const ShipId ship_id) {
+BoardError Board::get_shot_result(const BoardType &board, Position move) noexcept {
+    if (move.first >= static_cast<int>(kBoardSizeCol) ||
+        move.second >= static_cast<int>(kBoardSizeRow)) {
+        return BoardError::InvalidMove;
+    }
+    if (const auto field = get_board_field(board, move);
+        field != BoardFieldStatus::Empty && field != BoardFieldStatus::Ship) {
+        return BoardError::FieldAlreadyOccupied;
+    }
+    return BoardError::Ok;
+}
+
+BoardFieldStatus Board::get_board_field(const BoardType &board, const Position &field) noexcept {
+    return board[field.first][field.second].field;
+}
+
+void Board::blockAreaAroundSunkShip(const ShipId ship_id)
+{
     const auto it = ships_info_.find(ship_id);
     if (it == ships_info_.end()) {
         LOG_E("blockAreaAroundSunkShip: invalid ship id {}", ship_id);
@@ -231,7 +248,7 @@ bool Board::has_all_ships_deployed() const noexcept {
 }
 
 BoardFieldStatus Board::get_board_field(const Position& field) const noexcept {
-    return board_[field.first][field.second].field;
+    return get_board_field(board_, field);
 }
 
 void Board::set_board_field(const Position& field, BoardFieldStatus field_type) noexcept {
