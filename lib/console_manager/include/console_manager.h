@@ -37,6 +37,7 @@ public:
     void updateOponentShipsCount(const Board::ShipCountMap& ships_count);
     void showMakeShotInformation();
     void showShipHitInformation(const bool is_hit, const bool is_sunk);
+    void showRoundEndInformation();
 
     void clearPlayerTurnNotification();
 

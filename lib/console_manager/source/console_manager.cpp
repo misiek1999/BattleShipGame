@@ -324,6 +324,10 @@ void ConsoleManager::showShipHitInformation(const bool is_hit, const bool is_sun
     }
 }
 
+void ConsoleManager::showRoundEndInformation() {
+    printLineAndClear("Press space to start new game", kGameNotificationLine);
+}
+
 void ConsoleManager::clearPlayerTurnNotification() {
     clearLine(kGameNotificationLine);
 }

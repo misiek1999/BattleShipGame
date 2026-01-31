@@ -48,6 +48,7 @@ namespace UserInterface
     void UserInterface::onRoundEnded(const GameEngine::RoundResult round_result) {
         std::lock_guard<std::mutex> lock(mutex_);
         console_manager_->updateRoundEndMessage({}, round_result, round_);
+        console_manager_->showRoundEndInformation();
         ++round_;
     }
 
@@ -84,20 +85,26 @@ namespace UserInterface
     }
 
     void UserInterface::onGameStatusUpdated(const GameEngine::GameStatus game_status) {
-        if (game_status == GameEngine::GameStatus::RoundInProgress) {
-            ui_game_state_ = UIGameState::InGame;
-            std::lock_guard<std::mutex> lock(mutex_);
-            console_manager_->moveCursorToShot(cursor_pos_y_, cursor_pos_x_);
-            console_manager_->showMakeShotInformation();
-        }
-        if (game_status == GameEngine::GameStatus::PreparingBoards) {
-            ui_game_state_ = UIGameState::PlacingShips;
-            std::unique_lock<std::mutex> lock(mutex_);
-            console_manager_->moveCursorToPlayerBoardInput(cursor_pos_y_, cursor_pos_x_);
-            console_manager_->printShipPlacementInstructions();
-            lock.unlock();
-            updateCursorPosition();
-
+        switch (game_status) {
+            case GameEngine::GameStatus::RoundInProgress: {
+                ui_game_state_ = UIGameState::InGame;
+                std::lock_guard<std::mutex> lock(mutex_);
+                console_manager_->moveCursorToShot(cursor_pos_y_, cursor_pos_x_);
+                console_manager_->showMakeShotInformation();
+            } break;
+            case GameEngine::GameStatus::PreparingBoards: {
+                ui_game_state_ = UIGameState::PlacingShips;
+                std::unique_lock<std::mutex> lock(mutex_);
+                console_manager_->moveCursorToPlayerBoardInput(cursor_pos_y_, cursor_pos_x_);
+                console_manager_->printShipPlacementInstructions();
+                lock.unlock();
+                updateCursorPosition();
+            } break;
+            case GameEngine::GameStatus::RoundFinished: {
+                ui_game_state_ = UIGameState::RoundEnd;
+            } break;
+            default:
+                LOG_E("Unknown game status: {}", static_cast<int>(game_status));
         }
         std::lock_guard<std::mutex> lock(mutex_);
         console_manager_->updateGameStatus(game_status);
@@ -182,6 +189,12 @@ namespace UserInterface
                     console_manager_->showShipHitInformation(was_hit, was_sunk);
                 } else {
                     LOG_W("Failed to place ship at position ({}, {})", cursor_pos_y_, cursor_pos_x_);
+                }
+            }
+            if (ui_game_state_ == UIGameState::RoundEnd) {
+                const auto ret = host_player_->notifyReady();
+                if (!ret) {
+                    LOG_E("Failed to notify readiness");
                 }
             }
         }

@@ -21,6 +21,7 @@ namespace UserInterface {
     enum class UIGameState {
         PlacingShips,
         InGame,
+        RoundEnd,
     };
 
     // TODO: implement different UI states (game, exit confirmation, etc.)
@@ -28,7 +29,7 @@ namespace UserInterface {
     class UserInterface : public IUserInterfaceCallback, public std::enable_shared_from_this<IUserInterfaceCallback> {
     public:
         explicit UserInterface(std::binary_semaphore& game_end_semaphore);
-        ~UserInterface() = default;
+        ~UserInterface() override = default;
 
         void startInterface();
 
