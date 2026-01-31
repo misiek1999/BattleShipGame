@@ -49,7 +49,6 @@ namespace UserInterface
         std::lock_guard<std::mutex> lock(mutex_);
         console_manager_->updateRoundEndMessage({}, round_result, round_);
         console_manager_->showRoundEndInformation();
-        ++round_;
     }
 
     void UserInterface::onScoreUpdated(const int player_score, const int opponent_score) {
@@ -86,19 +85,23 @@ namespace UserInterface
 
     void UserInterface::onGameStatusUpdated(const GameEngine::GameStatus game_status) {
         switch (game_status) {
+            case GameEngine::GameStatus::PreparingBoards: {
+                if (ui_game_state_ == UIGameState::RoundEnd) {
+                    ++round_;
+                }
+                ui_game_state_ = UIGameState::PlacingShips;
+                std::unique_lock<std::mutex> lock(mutex_);
+                console_manager_->moveCursorToPlayerBoardInput(cursor_pos_y_, cursor_pos_x_);
+                console_manager_->printShipPlacementInstructions();
+                console_manager_->updateRoundCounter(round_);
+                lock.unlock();
+                updateCursorPosition();
+            } break;
             case GameEngine::GameStatus::RoundInProgress: {
                 ui_game_state_ = UIGameState::InGame;
                 std::lock_guard<std::mutex> lock(mutex_);
                 console_manager_->moveCursorToShot(cursor_pos_y_, cursor_pos_x_);
                 console_manager_->showMakeShotInformation();
-            } break;
-            case GameEngine::GameStatus::PreparingBoards: {
-                ui_game_state_ = UIGameState::PlacingShips;
-                std::unique_lock<std::mutex> lock(mutex_);
-                console_manager_->moveCursorToPlayerBoardInput(cursor_pos_y_, cursor_pos_x_);
-                console_manager_->printShipPlacementInstructions();
-                lock.unlock();
-                updateCursorPosition();
             } break;
             case GameEngine::GameStatus::RoundFinished: {
                 ui_game_state_ = UIGameState::RoundEnd;

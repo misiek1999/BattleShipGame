@@ -26,7 +26,8 @@ public:
 
     void updateBoardPlayer(const Board::BoardType& board);
     void updateBoardOponent(const Board::BoardType& board);
-    void updateGameStats(int host_score, int guest_score, size_t round);
+    void updateGameStats(const int host_score, const int guest_score, const size_t round);
+    void updateRoundCounter(const size_t round);
     void updateRoundEndMessage(const Board::BoardType& board, GameEngine::RoundResult result, size_t round);
     void showRoundEndMessage();
     void showPlayerTurnNotification();
@@ -80,7 +81,7 @@ private:
     Board::BoardType oponent_board_;
     int host_score_ = 0;
     int guest_score_ = 0;
-    size_t round_ = 0;
+    size_t round_ = 1;
     GameEngine::GameStatus game_status_ = GameEngine::GameStatus::NotStarted;
     Board::ShipCountMap ships_count_{};
     Board::ShipCountMap oponent_ships_count_{};

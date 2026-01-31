@@ -103,9 +103,14 @@ void ConsoleManager::updateBoardOponent(const Board::BoardType &board) {
     printBoards(board_, oponent_board_);
 }
 
-void ConsoleManager::updateGameStats(int host_score, int guest_score, size_t round) {
+void ConsoleManager::updateGameStats(const int host_score, const int guest_score, const size_t round) {
     host_score_ = host_score;
     guest_score_ = guest_score;
+    round_ = round;
+    printGameStatus();
+}
+
+void ConsoleManager::updateRoundCounter(const size_t round) {
     round_ = round;
     printGameStatus();
 }
