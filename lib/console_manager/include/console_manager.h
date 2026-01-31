@@ -28,7 +28,7 @@ public:
     void updateBoardOponent(const Board::BoardType& board);
     void updateGameStats(int host_score, int guest_score, size_t round);
     void updateGameEndMessage(const Board::BoardType& board, GameEngine::RoundResult result, size_t round);
-    void showGameEndMessage();
+    void showRoundEndMessage();
     void showPlayerTurnNotification();
     void printShipPlacementInstructions();
     void showMessage(const std::string& message);

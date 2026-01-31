@@ -27,7 +27,7 @@
 [[maybe_unused]] static constexpr const int kMainGameLine = 5;
 [[maybe_unused]] static constexpr const int kShipsCountLine = 27;
 [[maybe_unused]] static constexpr const int kShipsOponentCountLine = 28;
-[[maybe_unused]] static constexpr const int kGameResultLine = 29;
+[[maybe_unused]] static constexpr const int kRoundResultLine = 29;
 [[maybe_unused]] static constexpr const int kGameExitConfirmationLine = 30;
 
 
@@ -259,9 +259,9 @@ void ConsoleManager::restoreCursorPosition() {
     }
 }
 
-void ConsoleManager::showGameEndMessage() {
+void ConsoleManager::showRoundEndMessage() {
 
-    std::string result_str = "Game result: ";
+    std::string result_str = "Round result: ";
     switch (result_) {
         case GameEngine::RoundResult::Player1Won:
             result_str += "Player 1 (Host) Won!";
@@ -280,7 +280,7 @@ void ConsoleManager::showGameEndMessage() {
             break;
     }
 
-    printLineAndClear(result_str, kGameResultLine);
+    printLineAndClear(result_str, kRoundResultLine);
 }
 
 void ConsoleManager::showPlayerTurnNotification() {
