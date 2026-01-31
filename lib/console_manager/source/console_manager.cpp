@@ -62,7 +62,7 @@ void ConsoleManager::startConsole() {
         throw std::runtime_error("UserInterface callback is not set");
     }
     if (input_thread_.joinable()) {
-        LOG_W("ConsoleManager thread is already running");
+        LOG_W("ConsoleManager input thread is already running");
         return;
     }
     input_thread_ = std::jthread(
