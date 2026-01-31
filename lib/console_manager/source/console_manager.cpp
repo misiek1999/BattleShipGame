@@ -20,15 +20,15 @@
 #endif
 
 //TODO: remove atributes after development
-[[maybe_unused]] static constexpr const int kHeaderLine = 1;
-[[maybe_unused]] static constexpr const int kGameStatusLine = 2;
-[[maybe_unused]] static constexpr const int kGameNotificationLine = 3;
-[[maybe_unused]] static constexpr const int kMainGameTitleLine = 4;
-[[maybe_unused]] static constexpr const int kMainGameLine = 5;
-[[maybe_unused]] static constexpr const int kShipsCountLine = 27;
-[[maybe_unused]] static constexpr const int kShipsOponentCountLine = 28;
-[[maybe_unused]] static constexpr const int kRoundResultLine = 29;
-[[maybe_unused]] static constexpr const int kGameExitConfirmationLine = 30;
+static constexpr const int kHeaderLine = 1;
+static constexpr const int kGameStatusLine = 2;
+static constexpr const int kGameNotificationLine = 3;
+static constexpr const int kMainGameTitleLine = 4;
+static constexpr const int kMainGameLine = 5;
+static constexpr const int kShipsCountLine = 27;
+static constexpr const int kShipsOponentCountLine = 28;
+static constexpr const int kRoundResultLine = 29;
+static constexpr const int kGameExitConfirmationLine = 30;
 
 
 static constexpr const size_t kPlayerInputStartRow = kMainGameLine + 1;
