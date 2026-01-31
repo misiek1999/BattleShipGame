@@ -376,6 +376,7 @@ namespace GameSession {
             }
             // Broadcast to all players events to place a ships
             broadcastGameStatus();
+            broadcastGameBoard();
             sendShipCountsToAllPlayers();
             notifyPlayerToPlaceShips();
         }
@@ -523,6 +524,13 @@ namespace GameSession {
             const auto game_status = game_engine_->getGameStatus();
             if (callbacks_.onGameStatusReceived) {
                 callbacks_.onGameStatusReceived(game_status);
+            }
+        }
+
+        void broadcastGameBoard() {
+            for (const auto player : kPlayerArray) {
+                sendBoardToPlayer(player, game_engine_->getBoard(player));
+                sendOponentBoardToPlayer(player, game_engine_->getOponentBoard(player));
             }
         }
     };
