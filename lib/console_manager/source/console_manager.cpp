@@ -110,11 +110,12 @@ void ConsoleManager::updateGameStats(int host_score, int guest_score, size_t rou
     printGameStatus();
 }
 
-void ConsoleManager::updateGameEndMessage(const Board::BoardType &board, GameEngine::RoundResult result, size_t round) {
+void ConsoleManager::updateRoundEndMessage(const Board::BoardType &board, GameEngine::RoundResult result, size_t round) {
     board_ = board;
     round_ = round;
     result_ = result;
     printGameStatus();
+    showRoundEndMessage();
 }
 
 void ConsoleManager::printHeader() {

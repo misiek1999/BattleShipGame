@@ -47,7 +47,7 @@ namespace UserInterface
 
     void UserInterface::onRoundEnded(const GameEngine::RoundResult round_result) {
         std::lock_guard<std::mutex> lock(mutex_);
-        console_manager_->updateGameEndMessage({}, round_result, round_);
+        console_manager_->updateRoundEndMessage({}, round_result, round_);
         ++round_;
     }
 
