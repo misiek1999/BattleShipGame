@@ -131,15 +131,6 @@ std::expected<ShotResult, BoardError> Board::make_shot(Position move) noexcept {
 }
 
 bool Board::is_valid_ship_position(Position move, ShipType ship_type, bool is_vertical) const {
-    size_t ship_size = 0;
-    // Try to get ship size, catch invalid argument exception
-    try {
-        ship_size = get_ship_size(ship_type);
-    } catch (const std::invalid_argument& e) {
-        LOG_E("Exception catched: {}", e.what());
-        return false; // Invalid ship type
-    }
-
     // Check number of ships of this type
     if (get_ships_count(ship_type) >= get_max_ship_count(ship_type)) {
         LOG_V("Maximum number of ships of type {} already placed, max allowed ships count {}",
@@ -153,44 +144,7 @@ bool Board::is_valid_ship_position(Position move, ShipType ship_type, bool is_ve
         return false;
     }
 
-    // Check if ship fits in the board and doesn't overlap with existing ships
-    for (size_t i = 0; i < ship_size; ++i) {
-        Position current_field = !is_vertical ? Position{move.first, move.second + static_cast<int>(i)}
-                                          : Position{move.first + static_cast<int>(i), move.second};
-        if (current_field.first >= static_cast<int>(kBoardSizeCol) ||
-            current_field.second >= static_cast<int>(kBoardSizeRow)) {
-            LOG_V("Ship of type {} does not fit on the board at position ({}, {}), vertical: {}",
-                  ship_type_to_string(ship_type), current_field.first, current_field.second, is_vertical);
-            return false; // Out of bounds
-        }
-        const auto board_field = get_board_field(current_field);
-        if (board_field != BoardFieldStatus::Empty) {
-            LOG_V("Position ({}, {}) is already occupied {}, cannot place ship of type {}",
-                  current_field.first, current_field.second, static_cast<int>(board_field), ship_type_to_string(ship_type));
-            return false; // Position already occupied
-        }
-
-        // ensure surrounding cells (including diagonals) are empty so ships don't touch
-        const int col = current_field.first;
-        const int row = current_field.second;
-        for (int dr = -1; dr <= 1; ++dr) {
-            for (int dc = -1; dc <= 1; ++dc) {
-                if (dr == 0 && dc == 0) continue; // skip current
-                int ncol = col + dc;
-                int nrow = row + dr;
-                if (ncol < 0 || nrow < 0 ||
-                    ncol >= static_cast<int>(kBoardSizeCol) || nrow >= static_cast<int>(kBoardSizeRow)) {
-                    continue;
-                }
-                if (get_board_field(Position{ncol, nrow}) == BoardFieldStatus::Ship) {
-                    LOG_V("Adjacent ship found at ({}, {}) when placing ship of type {} at ({}, {}), invalid position",
-                          ncol, nrow, ship_type_to_string(ship_type), move.first, move.second);
-                    return false; // adjacent ship found — invalid position
-                }
-            }
-        }
-    }
-    return true;
+    return is_possible_to_place_ship(board_, move, ship_type, is_vertical);
 }
 
 BoardError Board::place_ship(Position move, ShipType ship_type, bool is_vertical) noexcept {
@@ -277,6 +231,52 @@ BoardType Board::get_board_without_ships() const noexcept {
         }
     }
     return board_copy;
+}
+
+bool Board::is_possible_to_place_ship(const BoardType &board, Position move, ShipType ship_type, bool is_vertical) noexcept {
+    size_t ship_size = get_ship_size(ship_type);
+    if (ship_size == 0) {
+        LOG_E("Invalid ship size for ship: {}", static_cast<int>(ship_type));
+        return false;
+    }
+    // Check if ship fits in the board and doesn't overlap with existing ships
+    for (size_t i = 0; i < ship_size; ++i) {
+        Position current_field = !is_vertical ? Position{move.first, move.second + static_cast<int>(i)}
+                                          : Position{move.first + static_cast<int>(i), move.second};
+        if (current_field.first >= static_cast<int>(kBoardSizeCol) ||
+            current_field.second >= static_cast<int>(kBoardSizeRow)) {
+            LOG_V("Ship of type {} does not fit on the board at position ({}, {}), vertical: {}",
+                  ship_type_to_string(ship_type), current_field.first, current_field.second, is_vertical);
+            return false; // Out of bounds
+        }
+        const auto board_field = get_board_field(board, current_field);
+        if (board_field != BoardFieldStatus::Empty) {
+            LOG_V("Position ({}, {}) is already occupied {}, cannot place ship of type {}",
+                  current_field.first, current_field.second, static_cast<int>(board_field), ship_type_to_string(ship_type));
+            return false; // Position already occupied
+        }
+
+        // ensure surrounding cells (including diagonals) are empty so ships don't touch
+        const int col = current_field.first;
+        const int row = current_field.second;
+        for (int dr = -1; dr <= 1; ++dr) {
+            for (int dc = -1; dc <= 1; ++dc) {
+                if (dr == 0 && dc == 0) continue; // skip current
+                int ncol = col + dc;
+                int nrow = row + dr;
+                if (ncol < 0 || nrow < 0 ||
+                    ncol >= static_cast<int>(kBoardSizeCol) || nrow >= static_cast<int>(kBoardSizeRow)) {
+                    continue;
+                }
+                if (get_board_field(board, Position{ncol, nrow}) == BoardFieldStatus::Ship) {
+                    LOG_V("Adjacent ship found at ({}, {}) when placing ship of type {} at ({}, {}), invalid position",
+                          ncol, nrow, ship_type_to_string(ship_type), move.first, move.second);
+                    return false; // adjacent ship found — invalid position
+                }
+            }
+        }
+    }
+    return true;
 }
 
 ShipId Board::get_ship_id_at_field(const Position& field) const noexcept {

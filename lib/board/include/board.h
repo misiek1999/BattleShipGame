@@ -84,10 +84,8 @@ namespace Board {
             case ShipType::Submarine:  return 2U;
             case ShipType::Cruiser:    return 3U;
             case ShipType::Battleship: return 4U;
-            default: break;
+            default:                   return 0U;
         }
-        // Throw an exception if the ship type is not found
-        throw std::invalid_argument("Invalid ship type");
     }
 
     // Map of ship types to their char characters, this is used for debug printing
@@ -226,6 +224,13 @@ namespace Board {
         /// @brief Get the board without ships
         /// @return The board without ships
         BoardType get_board_without_ships() const noexcept;
+
+        /// @brief Check if the ship can be placed on the board
+        /// @param board Board to check
+        /// @param move The move to make
+        /// @param ship_type The type of the ship
+        /// @param is_vertical True if the ship is vertical, false otherwise
+        static bool is_possible_to_place_ship(const BoardType& board, Position move, ShipType ship_type, bool is_vertical) noexcept;
 
     private:
         BoardType board_;

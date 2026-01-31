@@ -47,6 +47,10 @@ bool UserInterface::PlayerHost::placeShip(const Board::ShipType ship_type, const
         LOG_E("Action interface is not set");
         return false;
     }
+    if (!Board::Board::is_possible_to_place_ship(board_, position, ship_type, !is_horizontal)) {
+        LOG_I("Unable to place ship");
+        return false;
+    }
     last_request_id_ = action_interface_->placeShip(ship_type, position, is_horizontal);
     if (!place_ship_sem_.try_acquire_for(std::chrono::milliseconds(100))) {
         LOG_E("Timeout waiting for shot result");
