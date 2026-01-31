@@ -11,7 +11,7 @@ void init_logger(const bool dump_to_file) {
         auto logger = std::make_shared<spdlog::logger>(
             "game", file_sink
         );
-        spdlog::set_level(spdlog::level::trace);
+        logger->set_level(spdlog::level::trace);
         spdlog::set_default_logger(logger);
     } else {
 
