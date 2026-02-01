@@ -62,6 +62,11 @@ namespace UserInterface
     void UserInterface::onShipsCountReceived(const Board::ShipCountMap ships_count) {
         ships_count_ = ships_count;
         console_manager_->updateShipsCount(ships_count);
+        if (ui_game_state_ == UIGameState::PlacingShips) {
+            if (!checkIsSelectedShipPossibleToPlace()) {
+                nextShipToPlace();
+            }
+        }
     }
 
     void UserInterface::onOponentShipsCountReceived(const Board::ShipCountMap ships_count) {
