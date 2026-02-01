@@ -56,8 +56,7 @@ BoardFieldStatus Board::get_board_field(const BoardType &board, const Position &
     return board[field.first][field.second].field;
 }
 
-void Board::blockAreaAroundSunkShip(const ShipId ship_id)
-{
+void Board::blockAreaAroundSunkShip(const ShipId ship_id) {
     const auto it = ships_info_.find(ship_id);
     if (it == ships_info_.end()) {
         LOG_E("blockAreaAroundSunkShip: invalid ship id {}", ship_id);
@@ -67,15 +66,14 @@ void Board::blockAreaAroundSunkShip(const ShipId ship_id)
     const ShipInfo& ship = it->second;
     const size_t ship_size = get_ship_size(ship.type);
 
-    // Helper to mark a cell as Miss if possible
-    auto mark_miss = [&](int col, int row) {
-        if (col < 0 || row < 0 ||
-            col >= static_cast<int>(kBoardSizeCol) ||
-            row >= static_cast<int>(kBoardSizeRow)) {
+    auto mark_miss = [&](int row, int col) {
+        if (row < 0 || col < 0 ||
+            row >= static_cast<int>(kBoardSizeRow) ||
+            col >= static_cast<int>(kBoardSizeCol)) {
             return;
         }
 
-        auto& field = board_[col][row];
+        auto& field = board_[row][col];
         if (field.field == BoardFieldStatus::Empty) {
             field.field = BoardFieldStatus::Miss;
         }
@@ -83,18 +81,17 @@ void Board::blockAreaAroundSunkShip(const ShipId ship_id)
 
     // Iterate through all ship cells
     for (size_t i = 0; i < ship_size; ++i) {
-        const int col = ship.is_vertical
+        const int row = ship.is_vertical
             ? static_cast<int>(ship.pos.first) + static_cast<int>(i)
             : static_cast<int>(ship.pos.first);
 
-        const int row = ship.is_vertical
+        const int col = ship.is_vertical
             ? static_cast<int>(ship.pos.second)
             : static_cast<int>(ship.pos.second) + static_cast<int>(i);
 
-        // Check all surrounding cells (3×3)
-        for (int dc = -1; dc <= 1; ++dc) {
-            for (int dr = -1; dr <= 1; ++dr) {
-                mark_miss(col + dc, row + dr);
+        for (int dr = -1; dr <= 1; ++dr) {
+            for (int dc = -1; dc <= 1; ++dc) {
+                mark_miss(row + dr, col + dc);
             }
         }
     }
@@ -235,45 +232,57 @@ BoardType Board::get_board_without_ships() const noexcept {
     return board_copy;
 }
 
-bool Board::is_possible_to_place_ship(const BoardType &board, Position move, ShipType ship_type, bool is_vertical) noexcept {
-    size_t ship_size = get_ship_size(ship_type);
+bool Board::is_possible_to_place_ship(const BoardType& board,
+                                      Position move,
+                                      ShipType ship_type,
+                                      bool is_vertical) noexcept {
+    const size_t ship_size = get_ship_size(ship_type);
     if (ship_size == 0) {
         LOG_E("Invalid ship size for ship: {}", static_cast<int>(ship_type));
         return false;
     }
-    // Check if ship fits in the board and doesn't overlap with existing ships
+
     for (size_t i = 0; i < ship_size; ++i) {
-        Position current_field = !is_vertical ? Position{move.first, move.second + static_cast<int>(i)}
-                                          : Position{move.first + static_cast<int>(i), move.second};
-        if (current_field.first >= static_cast<int>(kBoardSizeCol) ||
-            current_field.second >= static_cast<int>(kBoardSizeRow)) {
+        Position current_field = !is_vertical
+            ? Position{move.first, move.second + static_cast<int>(i)}
+            : Position{move.first + static_cast<int>(i), move.second};
+
+        if (current_field.first < 0 || current_field.second < 0 ||
+            current_field.first >= static_cast<int>(kBoardSizeRow) ||
+            current_field.second >= static_cast<int>(kBoardSizeCol)) {
             LOG_V("Ship of type {} does not fit on the board at position ({}, {}), vertical: {}",
                   ship_type_to_string(ship_type), current_field.first, current_field.second, is_vertical);
-            return false; // Out of bounds
+            return false;
         }
         const auto board_field = get_board_field(board, current_field);
         if (board_field != BoardFieldStatus::Empty) {
             LOG_V("Position ({}, {}) is already occupied {}, cannot place ship of type {}",
-                  current_field.first, current_field.second, static_cast<int>(board_field), ship_type_to_string(ship_type));
-            return false; // Position already occupied
+                  current_field.first, current_field.second,
+                  static_cast<int>(board_field), ship_type_to_string(ship_type));
+            return false;
         }
 
         // ensure surrounding cells (including diagonals) are empty so ships don't touch
-        const int col = current_field.first;
-        const int row = current_field.second;
+        const int row = current_field.first;
+        const int col = current_field.second;
+
         for (int dr = -1; dr <= 1; ++dr) {
             for (int dc = -1; dc <= 1; ++dc) {
-                if (dr == 0 && dc == 0) continue; // skip current
-                int ncol = col + dc;
-                int nrow = row + dr;
-                if (ncol < 0 || nrow < 0 ||
-                    ncol >= static_cast<int>(kBoardSizeCol) || nrow >= static_cast<int>(kBoardSizeRow)) {
+                if (dr == 0 && dc == 0) continue;
+
+                const int nrow = row + dr;
+                const int ncol = col + dc;
+
+                if (nrow < 0 || ncol < 0 ||
+                    nrow >= static_cast<int>(kBoardSizeRow) ||
+                    ncol >= static_cast<int>(kBoardSizeCol)) {
                     continue;
                 }
-                if (get_board_field(board, Position{ncol, nrow}) == BoardFieldStatus::Ship) {
+
+                if (get_board_field(board, Position{nrow, ncol}) == BoardFieldStatus::Ship) {
                     LOG_V("Adjacent ship found at ({}, {}) when placing ship of type {} at ({}, {}), invalid position",
-                          ncol, nrow, ship_type_to_string(ship_type), move.first, move.second);
-                    return false; // adjacent ship found — invalid position
+                          nrow, ncol, ship_type_to_string(ship_type), move.first, move.second);
+                    return false;
                 }
             }
         }
