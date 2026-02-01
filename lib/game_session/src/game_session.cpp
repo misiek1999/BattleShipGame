@@ -125,135 +125,126 @@ namespace GameSession {
 
         // Event handler, executed in the session thread
         void processEvent(const GameActionEvent& event) {
-            // Check event type
-            const auto& action_type = event.action_type;
-
-            LOG_V("Processing event: Request ID: {}, Player ID: {}, Action Type: {}",
-                  event.request_id,
-                  to_cstring(event.player_id),
-                  to_cstring(event.action_type));
-
             auto result = RequestResult::Ok;
+            try {
+                // Check event type
+                const auto& action_type = event.action_type;
 
-            // Process the event based on its type
-            switch (action_type) {
-                case GameActionType::PlaceShip:
-                    result = placeShip(event);
-                    break;
-                case GameActionType::MakeShot:
-                    result = makeShot(event);
-                    break;
-                case GameActionType::NotifyReadyForNextRound:
-                    result = notifyPlayerReadyForNextRound(event);
-                    break;
-                case GameActionType::StartNewGame:
-                    result = startNewGame(event.player_id);
-                    break;
-                case GameActionType::RestartGame:
-                    result = resetGame();
-                    break;
-                case GameActionType::RequestPlayerBoard:
-                    result = getBoard(event.player_id);
-                    break;
-                case GameActionType::RequestOpponentBoard:
-                    result = requestOponentBoard(event.player_id);
-                    break;
-                case GameActionType::RequestGameStatus:
-                    result = requestGameStatus();
-                    break;
-                case GameActionType::RequestScore:
-                    result = requestScore(event.player_id);
-                    break;
-                case GameActionType::RequestShipsCount:
-                    result = requestShipsCount(event.player_id);
-                    break;
-                case GameActionType::RequestCurrentTurnPlayer:
-                    result = requestCurrentTurnPlayer(event.player_id);
-                    break;
-                    case GameActionType::StopGame:
-                    result = stopGame();
-                    break;
-                default:
-                    LOG_W("Action type {} not implemented yet", static_cast<uint8_t>(action_type));
-                    result = RequestResult::InvalidRequest;
-                    break;
+                LOG_V("Processing event: Request ID: {}, Player ID: {}, Action Type: {}",
+                    event.request_id,
+                    to_cstring(event.player_id),
+                    to_cstring(event.action_type));
+
+                // Process the event based on its type
+                switch (action_type) {
+                    case GameActionType::PlaceShip:
+                        result = placeShip(event);
+                        break;
+                    case GameActionType::MakeShot:
+                        result = makeShot(event);
+                        break;
+                    case GameActionType::NotifyReadyForNextRound:
+                        result = notifyPlayerReadyForNextRound(event);
+                        break;
+                    case GameActionType::StartNewGame:
+                        result = startNewGame(event.player_id);
+                        break;
+                    case GameActionType::RestartGame:
+                        result = resetGame();
+                        break;
+                    case GameActionType::RequestPlayerBoard:
+                        result = getBoard(event.player_id);
+                        break;
+                    case GameActionType::RequestOpponentBoard:
+                        result = requestOponentBoard(event.player_id);
+                        break;
+                    case GameActionType::RequestGameStatus:
+                        result = requestGameStatus();
+                        break;
+                    case GameActionType::RequestScore:
+                        result = requestScore(event.player_id);
+                        break;
+                    case GameActionType::RequestShipsCount:
+                        result = requestShipsCount(event.player_id);
+                        break;
+                    case GameActionType::RequestCurrentTurnPlayer:
+                        result = requestCurrentTurnPlayer(event.player_id);
+                        break;
+                        case GameActionType::StopGame:
+                        result = stopGame();
+                        break;
+                    default:
+                        LOG_W("Action type {} not implemented yet", static_cast<uint8_t>(action_type));
+                        result = RequestResult::InvalidRequest;
+                        break;
+                }
+
+            } catch (const std::bad_variant_access& e) {
+                LOG_E("Invalid action argument: {}", e.what());
+                result = RequestResult::InvalidArguments;
+            } catch (const std::exception& e) {
+                LOG_E("Exception during event processing: {}", e.what());
+                result = RequestResult::OperationFailed;
             }
-
             LOG_V("Event processed: Request ID: {}, Player ID: {}, Action Type: {} with result: {}",
-                  event.request_id,
-                  to_cstring(event.player_id),
-                  to_cstring(event.action_type),
-                  to_cstring(result));
+                event.request_id,
+                to_cstring(event.player_id),
+                to_cstring(event.action_type),
+                to_cstring(result));
             sendRequestResult(event.player_id, event.request_id, result);
         }
 
         // Event processing methods
         RequestResult placeShip(const GameActionEvent& event) {
-            try {
-                const auto& arg = std::get<PlaceShipActionArg>(event.action_arg);
-                const auto player = event.player_id;
-                const auto result = game_engine_->setPlayerShip(player, arg.ship_type, arg.position, arg.is_horizontal);
-                if (result != GameEngine::GameEngineError::Ok) {
-                    LOG_W("Failed to place ship for player {}: {}", board_player_type_to_string(player), static_cast<int>(result));
-                    return RequestResult::OperationFailed;
-                }
-                //notify how many ship player need to place
-                sendShipsCountToPlayer(player);
-                // send updated map with ships
-                sendBoardToPlayer(player, game_engine_->getBoard(player));
-
-                // Check all ships were placed, if yes move to game state
-                const auto game_status = game_engine_->getGameStatus();
-                if (game_status == GameEngine::GameStatus::RoundInProgress) {
-                    startRoundShots();
-                }
-            } catch (const std::bad_variant_access& e) {
-                LOG_E("Invalid action argument for PlaceShip: {}", e.what());
-                return RequestResult::InvalidArguments;
-            } catch (const std::exception& e) {
-                LOG_E("Exception during PlaceShip processing: {}", e.what());
+            const auto& arg = std::get<PlaceShipActionArg>(event.action_arg);
+            const auto player = event.player_id;
+            const auto result = game_engine_->setPlayerShip(player, arg.ship_type, arg.position, arg.is_horizontal);
+            if (result != GameEngine::GameEngineError::Ok) {
+                LOG_W("Failed to place ship for player {}: {}", board_player_type_to_string(player), static_cast<int>(result));
                 return RequestResult::OperationFailed;
+            }
+            //notify how many ship player need to place
+            sendShipsCountToPlayer(player);
+            // send updated map with ships
+            sendBoardToPlayer(player, game_engine_->getBoard(player));
+
+            // Check all ships were placed, if yes move to game state
+            const auto game_status = game_engine_->getGameStatus();
+            if (game_status == GameEngine::GameStatus::RoundInProgress) {
+                startRoundShots();
             }
             return RequestResult::Ok;
         }
 
         RequestResult makeShot(const GameActionEvent& event) {
             const auto& player = event.player_id;
-            try {
-                const auto& arg = std::get<MakeShotActionArg>(event.action_arg);
+            const auto& arg = std::get<MakeShotActionArg>(event.action_arg);
 
-                bool was_hitted = false;
-                bool was_ship_destroyed = false;
-                const auto result = game_engine_->setPlayerShot(event.player_id, arg.position, was_hitted, was_ship_destroyed);
-                if (result != GameEngine::GameEngineError::Ok) {
-                    LOG_W("Make shot failed for player: {}, error code: {}", board_player_type_to_string(event.player_id), to_cstring(result));
-                    return RequestResult::OperationFailed;
-                }
-                // Notify both players about the shot result
-                sendShotResult(player, arg.position, was_hitted, was_ship_destroyed);
-                sendBoardToPlayer(get_opponent_player(player), game_engine_->getBoard(get_opponent_player(player)));
-                sendOponentBoardToPlayer(player, game_engine_->getOponentBoard(player));
-                // In case of sunk ship, update the ships count
-                if (was_ship_destroyed) {
-                    sendShipsCountToPlayer(get_opponent_player(player));
-                    sendOponentShipsCountToPlayer(player);
-                }
-
-                // Check if the round has finished
-                const auto game_status = game_engine_->getGameStatus();
-                if (game_status == GameEngine::GameStatus::RoundFinished) {
-                    startRoundFinish();
-                } else {
-                    // Notify about next player's turn
-                    sendPlayerTurnNotify();
-                    broadcastToAllPlayersCurrentTurnNotify();
-                }
-            } catch (const std::bad_variant_access& e) {
-                LOG_E("Invalid action argument for MakeShot: {}", e.what());
-                return RequestResult::InvalidArguments;
-            } catch (const std::exception& e) {
-                LOG_E("Exception during MakeShot processing: {}", e.what());
+            bool was_hitted = false;
+            bool was_ship_destroyed = false;
+            const auto result = game_engine_->setPlayerShot(event.player_id, arg.position, was_hitted, was_ship_destroyed);
+            if (result != GameEngine::GameEngineError::Ok) {
+                LOG_W("Make shot failed for player: {}, error code: {}", board_player_type_to_string(event.player_id), to_cstring(result));
                 return RequestResult::OperationFailed;
+            }
+            // Notify both players about the shot result
+            sendShotResult(player, arg.position, was_hitted, was_ship_destroyed);
+            sendBoardToPlayer(get_opponent_player(player), game_engine_->getBoard(get_opponent_player(player)));
+            sendOponentBoardToPlayer(player, game_engine_->getOponentBoard(player));
+            // In case of sunk ship, update the ships count
+            if (was_ship_destroyed) {
+                sendShipsCountToPlayer(get_opponent_player(player));
+                sendOponentShipsCountToPlayer(player);
+            }
+
+            // Check if the round has finished
+            const auto game_status = game_engine_->getGameStatus();
+            if (game_status == GameEngine::GameStatus::RoundFinished) {
+                startRoundFinish();
+            } else {
+                // Notify about next player's turn
+                sendPlayerTurnNotify();
+                broadcastToAllPlayersCurrentTurnNotify();
             }
             return RequestResult::Ok;
         }
@@ -299,67 +290,37 @@ namespace GameSession {
         }
 
         RequestResult getBoard(const PlayerType player) {
-            try {
-                const auto board_opt = game_engine_->getBoard(player);
-                sendBoardToPlayer(player, board_opt);
-            } catch (const std::exception& e) {
-                LOG_E("Failed to create board instance: {}", e.what());
-                return RequestResult::OperationFailed;
-            }
+            const auto board_opt = game_engine_->getBoard(player);
+            sendBoardToPlayer(player, board_opt);
             return RequestResult::Ok;
         }
 
         RequestResult requestOponentBoard(const PlayerType player) {
-            try {
-                const auto board_opt = game_engine_->getOponentBoard(player);
-                sendBoardToPlayer(player, board_opt);
-            } catch (const std::exception& e) {
-                LOG_E("Failed to create opponent board instance: {}", e.what());
-                return RequestResult::OperationFailed;
-            }
+            const auto board_opt = game_engine_->getOponentBoard(player);
+            sendBoardToPlayer(player, board_opt);
             return RequestResult::Ok;
         }
 
         RequestResult requestGameStatus() {
-            try {
-                broadcastGameStatus();
-            } catch (const std::exception& e) {
-                LOG_E("Failed to get game status: {}", e.what());
-                return RequestResult::OperationFailed;
-            }
+            broadcastGameStatus();
             return RequestResult::Ok;
         }
 
         RequestResult requestScore(const PlayerType player) {
             std::ignore = player;
-            try {
-                sendScoreUpdated();
-            } catch (const std::exception& e) {
-                LOG_E("Failed to get score: {}", e.what());
-                return RequestResult::OperationFailed;
-            }
+            sendScoreUpdated();
             return RequestResult::Ok;
         }
 
         RequestResult requestShipsCount(const PlayerType player) {
-            try {
-                std::ignore = player;
-                sendShipCountsToAllPlayers();
-            } catch (const std::exception& e) {
-                LOG_E("Failed to get score: {}", e.what());
-                return RequestResult::OperationFailed;
-            }
+            std::ignore = player;
+            sendShipCountsToAllPlayers();
             return RequestResult::Ok;
         }
 
         RequestResult requestCurrentTurnPlayer(const PlayerType player) {
             std::ignore = player;   //TODO: use player info if needed
-            try {
-                broadcastToAllPlayersCurrentTurnNotify();
-            } catch (const std::exception& e) {
-                LOG_E("Failed to get current turn player: {}", e.what());
-                return RequestResult::OperationFailed;
-            }
+            broadcastToAllPlayersCurrentTurnNotify();
             return RequestResult::Ok;
         }
 
