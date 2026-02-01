@@ -17,8 +17,12 @@ BotRandom::BotRandom(std::shared_ptr<GameSession::IGamePlayerAction> action_inte
 }
 
 RequestId BotRandom::placeShip(const Board::ShipType ship_type) {
-    const auto pos = generateRandomPos();
-    const auto rot = generateRandoRot();
+    Board::Position pos {0, 0};
+    bool rot {false};
+    do {
+        pos = generateRandomPos();
+        rot = generateRandoRot();
+    } while (!Board::Board::is_possible_to_place_ship(board_, pos, ship_type, !rot));
     return action_interface_->placeShip(ship_type, pos, rot);
 }
 
