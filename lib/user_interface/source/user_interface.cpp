@@ -157,7 +157,6 @@ namespace UserInterface
                 Board::ShipType ship_type = static_cast<Board::ShipType>(current_ship_to_place_index_);
                 bool placed = host_player_->placeShip(ship_type, {cursor_pos_y_, cursor_pos_x_}, placing_ship_horizontal_);
                 if (placed) {
-                    console_manager_->clearRenderedShipPlacement();
                     if (!checkIsSelectedShipPossibleToPlace()) {
                         nextShipToPlace();
                     }
