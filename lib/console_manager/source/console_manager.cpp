@@ -44,6 +44,7 @@ static constexpr const char kClearScreenSeq[] = "\033[2J\033[1;1H"; // ANSI esca
 
 ConsoleManager::ConsoleManager() {
     LOG_D("ConsoleManager created");
+    clearConsole();
 }
 
 ConsoleManager::~ConsoleManager() {
