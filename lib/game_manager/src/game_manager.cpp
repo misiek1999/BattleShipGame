@@ -9,6 +9,7 @@ GameManager::GameManager::GameManager() {
     player_manager_ = PlayerManager::PlayerManager::Builder(game_session_)
                                         .addHost(player_host_)
                                         .createGuestType(OponentPlayerType::Bot)
+                                        .addBotType(BotType::Smart)
                                         .build();
     user_interface_->setHostPlayerInterface(player_host_);
     user_interface_->startInterface();

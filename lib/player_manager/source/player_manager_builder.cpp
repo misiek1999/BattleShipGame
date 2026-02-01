@@ -21,7 +21,6 @@ PlayerManager::PlayerManager::Builder& PlayerManager::PlayerManager::Builder::ad
 
 PlayerManager::PlayerManager::Builder& PlayerManager::PlayerManager::Builder::createGuestType(const OponentPlayerType type) {
     guest_type_ = type;
-    guest_ = createGuestPlayer(type);
     LOG_V("Created oponenent for type: {}", to_cstring(type));
     return *this;
 }
@@ -30,6 +29,7 @@ PlayerManager::PlayerManager::Builder &PlayerManager::PlayerManager::Builder::ad
     if (guest_type_ != OponentPlayerType::Bot) {
         throw std::logic_error("Please specify bot type first");
     }
+    LOG_V("Set bot type to: {}", static_cast<int>(type));
     bot_type_ = type;
     return *this;
 }
@@ -43,7 +43,7 @@ std::unique_ptr<PlayerManager::PlayerManager> PlayerManager::PlayerManager::Buil
     }
 
     if (!guest_.has_value()) {
-        throw std::logic_error("Guest player instance must be created");
+        guest_ = createGuestPlayer(guest_type_.value_or(OponentPlayerType::Bot));
     }
 
     if (!host_.has_value()) {
@@ -82,12 +82,14 @@ std::shared_ptr<Player::IPlayer> PlayerManager::PlayerManager::Builder::createOp
 std::shared_ptr<Player::IPlayer> PlayerManager::PlayerManager::Builder::createBotPlayer(const PlayerType player_type, const BotType bot_type) {
     std::shared_ptr<GameSession::IGamePlayerAction> player_action = std::make_shared<GameSession::GamePlayerAction>(game_session_, player_type);
     std::unique_ptr<IBotFactory> bot_factory;
+    LOG_I("Bot type {}", static_cast<int>(bot_type));
     switch (bot_type) {
         case BotType::Random:
             bot_factory = std::make_unique<BotFactoryRandom>();
             break;
         case BotType::Smart:
-            [[fallthrough]];
+            bot_factory = std::make_unique<BotFactoryAlgorithm>();
+            break;
         default: {
             throw std::logic_error("Bot type not supported");
         }

@@ -5,7 +5,7 @@
 #include "game_player_action.h"
 #include "bot_interface.h"
 #include "bot_random.h"
-// #include "bot_algorithm.h"
+#include "bot_inteligent.h"
 
 #include <memory>
 
@@ -26,12 +26,11 @@ public:
     }
 };
 
-//TODO: uncomment when bot algorithm will be implemented
-// class BotFactoryAlgorithm : public IBotFactory {
-// public:
-//     BotFactoryAlgorithm() = default;
-//     inline virtual std::unique_ptr<IPlayerBot> createBot(std::shared_ptr<GameSession::IGamePlayerAction> action_interface,
-//               const PlayerType player_type) override {
-//         return std::make_unique<BotAlgorithm>(action_interface, player_type);
-//     }
-// };
+class BotFactoryAlgorithm : public IBotFactory {
+public:
+    BotFactoryAlgorithm() = default;
+    inline virtual std::unique_ptr<IPlayerBot> createBot(std::shared_ptr<GameSession::IGamePlayerAction> action_interface,
+              const PlayerType player_type) override {
+        return std::make_unique<BotInteligent>(action_interface, player_type);
+    }
+};
