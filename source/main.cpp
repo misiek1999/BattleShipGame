@@ -7,7 +7,7 @@
 int main(int argc, char* argv[]){
     bool dump_log_to_file {false};
     for (int i = 1; i < argc; ++i) {
-        if (std::string_view(argv[i]) == "-d") {
+        if (std::string_view(argv[i]) == "-v") {
             dump_log_to_file = true;
         }
     }
