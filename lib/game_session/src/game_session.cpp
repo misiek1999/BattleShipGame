@@ -239,14 +239,14 @@ namespace GameSession {
                     sendOponentShipsCountToPlayer(player);
                 }
 
-                // Notify about next player's turn
-                sendPlayerTurnNotify();
-                broadcastToAllPlayersCurrentTurnNotify();
-
                 // Check if the round has finished
                 const auto game_status = game_engine_->getGameStatus();
                 if (game_status == GameEngine::GameStatus::RoundFinished) {
                     startRoundFinish();
+                } else {
+                    // Notify about next player's turn
+                    sendPlayerTurnNotify();
+                    broadcastToAllPlayersCurrentTurnNotify();
                 }
             } catch (const std::bad_variant_access& e) {
                 LOG_E("Invalid action argument for MakeShot: {}", e.what());
