@@ -26,9 +26,9 @@ public:
     }
 };
 
-class BotFactoryAlgorithm : public IBotFactory {
+class BotFactoryHunter : public IBotFactory {
 public:
-    BotFactoryAlgorithm() = default;
+    BotFactoryHunter() = default;
     inline virtual std::unique_ptr<IPlayerBot> createBot(std::shared_ptr<GameSession::IGamePlayerAction> action_interface,
               const PlayerType player_type) override {
         return std::make_unique<BotHunter>(action_interface, player_type);
