@@ -9,7 +9,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g ")
 set(INCLUDE_DIR include)
 include_directories(${INCLUDE_DIR})
 
-file(GLOB_RECURSE SOURCES "source/*.cpp")
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "source/*.cpp")
 
 add_subdirectory(lib)
 
