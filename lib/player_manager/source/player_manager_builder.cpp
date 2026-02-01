@@ -90,6 +90,9 @@ std::shared_ptr<Player::IPlayer> PlayerManager::PlayerManager::Builder::createBo
         case BotType::Hunter:
             bot_factory = std::make_unique<BotFactoryHunter>();
             break;
+        case BotType::GPT:
+            bot_factory = std::make_unique<BotFactoryGpt>();
+            break;
         default: {
             throw std::logic_error("Bot type not supported");
         }

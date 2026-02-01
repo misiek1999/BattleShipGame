@@ -6,6 +6,7 @@
 #include "bot_interface.h"
 #include "bot_random.h"
 #include "bot_hunter.h"
+#include "bot_gpt.h"
 
 #include <memory>
 
@@ -34,3 +35,21 @@ public:
         return std::make_unique<BotHunter>(action_interface, player_type);
     }
 };
+
+class BotFactoryGpt : public IBotFactory {
+public:
+    BotFactoryGpt() = default;
+    inline virtual std::unique_ptr<IPlayerBot> createBot(std::shared_ptr<GameSession::IGamePlayerAction> action_interface,
+              const PlayerType player_type) override {
+        return std::make_unique<BotGpt>(action_interface, player_type);
+    }
+};
+
+// class BotFactoryHunter : public IBotFactory {
+// public:
+//     BotFactoryHunter() = default;
+//     inline virtual std::unique_ptr<IPlayerBot> createBot(std::shared_ptr<GameSession::IGamePlayerAction> action_interface,
+//               const PlayerType player_type) override {
+//         return std::make_unique<BotHunter>(action_interface, player_type);
+//     }
+// };
