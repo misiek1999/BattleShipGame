@@ -84,6 +84,7 @@ namespace UserInterface
             case GameEngine::GameStatus::PreparingBoards: {
                 if (ui_game_state_ == UIGameState::RoundEnd) {
                     ++round_;
+                    current_ship_to_place_index_ = 0;
                 }
                 ui_game_state_ = UIGameState::PlacingShips;
                 console_manager_->moveCursorToPlayerBoardInput(cursor_pos_y_, cursor_pos_x_);
