@@ -27,8 +27,9 @@ bool Board::is_valid_shot(const BoardType& board, Position move) noexcept {
 }
 
 BoardError Board::get_shot_result(Position move) const noexcept {
-    if (move.first >= static_cast<int>(kBoardSizeCol) ||
-        move.second >= static_cast<int>(kBoardSizeRow)) {
+    if (move.first < 0 || move.second < 0 ||
+        move.first >= static_cast<int>(kBoardSizeRow) ||
+        move.second >= static_cast<int>(kBoardSizeCol)) {
         return BoardError::InvalidMove;
     }
     if (const auto field = get_board_field(move);
@@ -38,9 +39,10 @@ BoardError Board::get_shot_result(Position move) const noexcept {
     return BoardError::Ok;
 }
 
-BoardError Board::get_shot_result(const BoardType &board, Position move) noexcept {
-    if (move.first >= static_cast<int>(kBoardSizeCol) ||
-        move.second >= static_cast<int>(kBoardSizeRow)) {
+BoardError Board::get_shot_result(const BoardType& board, Position move) noexcept {
+    if (move.first < 0 || move.second < 0 ||
+        move.first >= static_cast<int>(kBoardSizeRow) ||
+        move.second >= static_cast<int>(kBoardSizeCol)) {
         return BoardError::InvalidMove;
     }
     if (const auto field = get_board_field(board, move);
