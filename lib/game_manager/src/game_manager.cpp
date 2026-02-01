@@ -2,14 +2,14 @@
 #include "log.h"
 #include "player_manager_builder.h"
 
-GameManager::GameManager::GameManager() {
+GameManager::GameManager::GameManager(const BotType type) {
     user_interface_ = std::make_shared<UserInterface::UserInterface>(game_end_semaphore_);
     player_host_ = std::make_shared<UserInterface::PlayerHost>(user_interface_);
     game_session_ = std::make_shared<GameSession::GameSessionApi>();
     player_manager_ = PlayerManager::PlayerManager::Builder(game_session_)
                                         .addHost(player_host_)
                                         .createGuestType(OponentPlayerType::Bot)
-                                        .addBotType(BotType::GPT)
+                                        .addBotType(type)
                                         .build();
     user_interface_->setHostPlayerInterface(player_host_);
     user_interface_->startInterface();

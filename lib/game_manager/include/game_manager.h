@@ -15,7 +15,7 @@ namespace GameManager {
 
     class GameManager {
     public:
-        GameManager();
+        explicit GameManager(const BotType type = BotType::Hunter);
         ~GameManager();
 
         bool startGame();
