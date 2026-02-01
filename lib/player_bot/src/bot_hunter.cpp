@@ -1,7 +1,7 @@
-#include "bot_inteligent.h"
+#include "bot_hunter.h"
 #include "board.h"
 
-BotInteligent::BotInteligent(std::shared_ptr<GameSession::IGamePlayerAction> action_interface,
+BotHunter::BotHunter(std::shared_ptr<GameSession::IGamePlayerAction> action_interface,
         const PlayerType player_type)
     : PlayerBotBase(action_interface, player_type),
       gen_(rd_()) {
@@ -10,7 +10,7 @@ BotInteligent::BotInteligent(std::shared_ptr<GameSession::IGamePlayerAction> act
                   std::vector<bool>(Board::kBoardSizeCol, false));
 }
 
-RequestId BotInteligent::placeShip(const Board::ShipType ship_type) {
+RequestId BotHunter::placeShip(const Board::ShipType ship_type) {
     std::uniform_int_distribution<> row(0, Board::kBoardSizeRow - 1);
     std::uniform_int_distribution<> col(0, Board::kBoardSizeCol - 1);
     std::uniform_int_distribution<> rot(0, 1);
@@ -27,7 +27,7 @@ RequestId BotInteligent::placeShip(const Board::ShipType ship_type) {
     return action_interface_->placeShip(ship_type, pos, horizontal);
 }
 
-RequestId BotInteligent::makeShot() {
+RequestId BotHunter::makeShot() {
     Board::Position pos;
 
     if (mode_ == Mode::Target && !target_queue_.empty()) {
@@ -44,7 +44,7 @@ RequestId BotInteligent::makeShot() {
     return action_interface_->makeShot(pos);
 }
 
-void BotInteligent::onPlayerShotResult(const Board::Position &position, const bool is_hit, const bool is_ship_sunk) {
+void BotHunter::onPlayerShotResult(const Board::Position &position, const bool is_hit, const bool is_ship_sunk) {
     if (is_ship_sunk) {
         onShipSunk();
         return;
@@ -54,14 +54,14 @@ void BotInteligent::onPlayerShotResult(const Board::Position &position, const bo
     }
 }
 
-Board::Position BotInteligent::randomPosition() {
+Board::Position BotHunter::randomPosition() {
     std::uniform_int_distribution<> row(0, Board::kBoardSizeRow - 1);
     std::uniform_int_distribution<> col(0, Board::kBoardSizeCol - 1);
 
     return {row(gen_), col(gen_)};
 }
 
-bool BotInteligent::isValidTarget(const Board::Position& pos) const {
+bool BotHunter::isValidTarget(const Board::Position& pos) const {
     if (pos.first < 0 || pos.second < 0) return false;
     if (static_cast<size_t>(pos.first) >= Board::kBoardSizeRow ||
         static_cast<size_t>(pos.second) >= Board::kBoardSizeCol)
@@ -70,17 +70,17 @@ bool BotInteligent::isValidTarget(const Board::Position& pos) const {
            Board::Board::is_valid_shot(oponent_board_, pos);
 }
 
-void BotInteligent::onHit(const Board::Position& pos) {
+void BotHunter::onHit(const Board::Position& pos) {
     mode_ = Mode::Target;
     enqueueNeighbors(pos);
 }
 
-void BotInteligent::onShipSunk() {
+void BotHunter::onShipSunk() {
     mode_ = Mode::Hunt;
     target_queue_.clear();
 }
 
-void BotInteligent::enqueueNeighbors(const Board::Position& pos) {
+void BotHunter::enqueueNeighbors(const Board::Position& pos) {
     static const int dr[] = { -1, 1, 0, 0 };
     static const int dc[] = { 0, 0, -1, 1 };
 

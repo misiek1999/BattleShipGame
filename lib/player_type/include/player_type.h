@@ -51,7 +51,9 @@ enum class OponentPlayerType {
 
 enum class BotType {
     Random,
-    Smart,
+    Hunter,
+    GPT,
+    Claude,
     NumberOfBotTypes,
 };
 

@@ -87,7 +87,7 @@ std::shared_ptr<Player::IPlayer> PlayerManager::PlayerManager::Builder::createBo
         case BotType::Random:
             bot_factory = std::make_unique<BotFactoryRandom>();
             break;
-        case BotType::Smart:
+        case BotType::Hunter:
             bot_factory = std::make_unique<BotFactoryAlgorithm>();
             break;
         default: {

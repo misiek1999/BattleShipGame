@@ -11,11 +11,11 @@
 #include "board.h"
 #include "bot_base.h"
 
-class BotInteligent : public PlayerBotBase {
+class BotHunter : public PlayerBotBase {
 public:
-    BotInteligent(std::shared_ptr<GameSession::IGamePlayerAction> action_interface,
+    BotHunter(std::shared_ptr<GameSession::IGamePlayerAction> action_interface,
         const PlayerType player_type);
-    ~BotInteligent() override = default;
+    ~BotHunter() override = default;
 
 protected:
     RequestId placeShip(const Board::ShipType ship_type) override;
