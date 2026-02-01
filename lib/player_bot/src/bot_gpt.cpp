@@ -71,6 +71,14 @@ int BotGpt::shipPlacementScore(Board::Position pos, bool horizontal, size_t L) c
 }
 
 RequestId BotGpt::placeShip(const Board::ShipType ship_type) {
+    // Detect start of a new game:
+    // - engine cleared our local board_ (no ships)
+    // - but we previously placed ships in an earlier game
+    const bool board_empty_now = !ownBoardHasAnyShips();
+    if (!new_game_initialized_ || (ships_placed_in_current_game_ > 0 && board_empty_now)) {
+        resetForNewGame();
+    }
+
     std::uniform_int_distribution<> row(0, Board::kBoardSizeRow - 1);
     std::uniform_int_distribution<> col(0, Board::kBoardSizeCol - 1);
     std::uniform_int_distribution<> rot(0, 1);
@@ -110,6 +118,7 @@ RequestId BotGpt::placeShip(const Board::ShipType ship_type) {
         } while (!Board::Board::is_possible_to_place_ship(board_, pos, ship_type, !horizontal));
         return action_interface_->placeShip(ship_type, pos, horizontal);
     }
+    ++ships_placed_in_current_game_;
 
     return action_interface_->placeShip(ship_type, bestPos, bestHorizontal);
 }
@@ -318,10 +327,15 @@ Board::Position BotGpt::bestHeatmapShot() {
     }
 
     if (bestCells.empty()) {
-        // fallback
-        Board::Position p;
-        do { p = randomPosition(); } while (!isValidTarget(p));
-        return p;
+        if (auto any = findAnyValidTarget(); any.has_value())
+            return *any;
+
+        LOG_E("BotGpt: No valid targets left, but game not finished. "
+            "enemy_ Unknown cells: {}", 
+            std::count_if(enemy_.begin(), enemy_.end(), [](auto& row){
+                return std::count(row.begin(), row.end(), Cell::Unknown);
+            }));
+        throw std::runtime_error("BotGpt: no valid shots left");
     }
 
     std::uniform_int_distribution<> pick(0, static_cast<int>(bestCells.size()) - 1);
@@ -330,6 +344,10 @@ Board::Position BotGpt::bestHeatmapShot() {
 
 RequestId BotGpt::makeShot() {
     Board::Position pos = bestHeatmapShot();
+    if (!isValidTarget(pos)) {
+        LOG_E("BotGpt produced invalid shot ({}, {})", pos.first, pos.second);
+        throw std::runtime_error("BotGpt invalid shot");
+    }
     return action_interface_->makeShot(pos);
 }
 
@@ -362,9 +380,11 @@ void BotGpt::markWaterAroundSunkCluster(const std::vector<Board::Position>& clus
 }
 
 void BotGpt::onPlayerShotResult(const Board::Position& pos,
-                                      const bool is_hit,
-                                      const bool is_ship_sunk) {
-    if (!is_hit) {
+                                const bool is_hit,
+                                const bool is_ship_sunk) {
+    const bool hit = is_hit || is_ship_sunk; // ShipDestroyed must imply a hit
+
+    if (!hit) {
         enemy_[pos.first][pos.second] = Cell::Miss;
         return;
     }
@@ -372,18 +392,49 @@ void BotGpt::onPlayerShotResult(const Board::Position& pos,
     enemy_[pos.first][pos.second] = Cell::Hit;
 
     if (is_ship_sunk) {
-        // Find the connected hit cluster containing this last hit
         auto cluster = collectHitClusterFrom(pos);
-
-        // Mark all as sunk
-        for (const auto& h : cluster) {
-            enemy_[h.first][h.second] = Cell::Sunk;
-        }
-
-        // Remove sunk length from remaining ships
+        for (const auto& h : cluster) enemy_[h.first][h.second] = Cell::Sunk;
         removeSunkLength(static_cast<int>(cluster.size()));
-
-        // Optional but recommended if ships don't touch:
         markWaterAroundSunkCluster(cluster);
     }
+}
+
+std::optional<Board::Position> BotGpt::findAnyValidTarget() const {
+    for (int r = 0; r < static_cast<int>(Board::kBoardSizeRow); ++r) {
+        for (int c = 0; c < static_cast<int>(Board::kBoardSizeCol); ++c) {
+            Board::Position p{r, c};
+            if (isValidTarget(p)) return p;
+        }
+    }
+    return std::nullopt;
+}
+
+bool BotGpt::ownBoardHasAnyShips() const noexcept {
+    for (size_t r = 0; r < Board::kBoardSizeRow; ++r) {
+        for (size_t c = 0; c < Board::kBoardSizeCol; ++c) {
+            if (board_[r][c].field == Board::BoardFieldStatus::Ship) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void BotGpt::resetForNewGame() {
+    LOG_I("BotGpt resetForNewGame()");
+
+    // reset shooting knowledge
+    enemy_.assign(Board::kBoardSizeRow,
+                  std::vector<Cell>(Board::kBoardSizeCol, Cell::Unknown));
+
+    initRemainingShipsFromBoardRules();
+
+    // IMPORTANT: if you keep using oponent_board_ in isValidTarget, reset it too
+    // (depends on PlayerBotBase, but typically these are protected BoardType)
+    // This makes Board::is_valid_shot(...) not block all shots in the next game.
+    for (auto& row : oponent_board_) row.fill({});
+    for (auto& row : board_) row.fill({}); // local placement helper board
+
+    ships_placed_in_current_game_ = 0;
+    new_game_initialized_ = true;
 }

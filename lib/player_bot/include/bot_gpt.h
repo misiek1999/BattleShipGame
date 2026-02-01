@@ -22,6 +22,12 @@ public:
                             bool is_ship_sunk) override;
 
 private:
+    bool new_game_initialized_ = false;
+    size_t ships_placed_in_current_game_ = 0;
+
+    void resetForNewGame();
+    bool ownBoardHasAnyShips() const noexcept;
+
     enum class Cell : uint8_t { Unknown, Miss, Hit, Sunk };
 
     std::random_device rd_;
@@ -53,4 +59,6 @@ private:
     static int edgeDist(int r, int c);
 
     void initRemainingShipsFromBoardRules();
+
+    std::optional<Board::Position> findAnyValidTarget() const;
 };
