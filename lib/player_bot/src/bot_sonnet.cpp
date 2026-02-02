@@ -158,43 +158,67 @@ Board::Position BotSonnet::findBestPlacement(const Board::ShipType ship_type,
                                              bool& is_vertical) {
     size_t ship_size = Board::get_ship_size(ship_type);
 
-    struct Candidate {
+    struct PlacementCandidate {
         Board::Position pos;
-        bool vertical;
+        bool is_vertical;
         double score;
     };
 
-    std::vector<Candidate> cands;
+    std::vector<PlacementCandidate> candidates;
 
+    // Evaluate all possible placements
     for (size_t r = 0; r < Board::kBoardSizeRow; ++r) {
         for (size_t c = 0; c < Board::kBoardSizeCol; ++c) {
-            Board::Position p{int(r), int(c)};
+            Board::Position pos{static_cast<int>(r), static_cast<int>(c)};
 
-            if (Board::Board::is_possible_to_place_ship(board_, p, ship_type, true))
-                cands.push_back({p, true,
-                    evaluatePlacementPosition(p, ship_size, true)});
+            // Vertical placement
+            if (Board::Board::is_possible_to_place_ship(board_, pos, ship_type, true)) {
+                double score = evaluatePlacementPosition(pos, ship_size, true);
+                candidates.push_back({pos, true, score});
+            }
 
-            if (Board::Board::is_possible_to_place_ship(board_, p, ship_type, false))
-                cands.push_back({p, false,
-                    evaluatePlacementPosition(p, ship_size, false)});
+            // Horizontal placement
+            if (Board::Board::is_possible_to_place_ship(board_, pos, ship_type, false)) {
+                double score = evaluatePlacementPosition(pos, ship_size, false);
+                candidates.push_back({pos, false, score});
+            }
         }
     }
 
-    if (cands.empty())
-        throw std::runtime_error("No valid placement");
+    // If we found candidates, pick the best ones
+    if (!candidates.empty()) {
+        std::sort(candidates.begin(), candidates.end(),
+                  [](const auto& a, const auto& b) { return a.score > b.score; });
 
-    std::sort(cands.begin(), cands.end(),
-              [](auto& a, auto& b) { return a.score > b.score; });
+        size_t top_n = std::min(candidates.size(), static_cast<size_t>(10));
+        std::vector<double> weights;
+        for (size_t i = 0; i < top_n; ++i) weights.push_back(std::pow(0.6, static_cast<double>(i)));
+        std::discrete_distribution<size_t> dist(weights.begin(), weights.end());
 
-    size_t top = std::min<size_t>(10, cands.size());
-    std::vector<double> w(top);
-    for (size_t i = 0; i < top; ++i) w[i] = std::pow(0.6, i);
+        auto& chosen = candidates[dist(gen_)];
+        is_vertical = chosen.is_vertical;
+        return chosen.pos;
+    }
 
-    std::discrete_distribution<size_t> dist(w.begin(), w.end());
-    auto& pick = cands[dist(gen_)];
+    // -------------------------------------------------
+    // Fallback: pick the first valid position (must never fail)
+    for (size_t r = 0; r < Board::kBoardSizeRow; ++r) {
+        for (size_t c = 0; c < Board::kBoardSizeCol; ++c) {
+            Board::Position pos{static_cast<int>(r), static_cast<int>(c)};
+            if (Board::Board::is_possible_to_place_ship(board_, pos, ship_type, true)) {
+                is_vertical = true;
+                return pos;
+            }
+            if (Board::Board::is_possible_to_place_ship(board_, pos, ship_type, false)) {
+                is_vertical = false;
+                return pos;
+            }
+        }
+    }
 
-    is_vertical = pick.vertical;
-    return pick.pos;
+    // Absolute last resort (should be unreachable)
+    is_vertical = true;
+    return {0, 0};
 }
 
 // =============================================================================
